@@ -61,10 +61,10 @@ sudo apt-get install -y ccache
 $VENV_PYTHON ./patch_rocsolver.py
 
 
-../install.sh -a gfx942 -c -g -d
+../install.sh --architecture gfx942 --clients --relwithdebinfo --dependencies
 
 
-# ./install.sh -a gfx942
-# ./install.sh -a gfx942 -c -g -d
+# ./install.sh --architecture gfx942
+# ./install.sh --architecture gfx942 --clients --relwithdebinfo --dependencies
 
 

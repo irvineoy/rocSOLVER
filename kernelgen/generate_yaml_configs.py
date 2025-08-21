@@ -215,13 +215,13 @@ def generate_yaml_config(base_name: str, files: List[str]) -> Dict:
         'gen_file_path': all_source_files, 
         'target_kernel_functions': target_functions,
         'compile_command': [
-            './install.sh -a gfx942 -c -g -d'
+            './install.sh --architecture gfx942 --clients --relwithdebinfo'
         ],
         'correctness_command': [
-            f'build/release/clients/staging/rocsolver-test --gtest_filter={test_filter}'
+            f'build/release-debug/clients/staging/rocsolver-test --gtest_filter={test_filter}'
         ],
         'performance_command': [
-            f'rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f {bench_func} -r s -m 3000 -n 3000 --lda 3000 --iters 2',
+            f'rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f {bench_func} -r s -m 3000 -n 3000 --lda 3000 --iters 2',
             'rocprof-compute analyze --path rocprof_compute_profile -b 2'
         ]
     }

@@ -4,11 +4,11 @@ I am currently working on GPU kernel optimization. Please help me write a benchm
 
 
 rocsolver-bench context:
-~/rocSOLVER# build/release/clients/staging/rocsolver-bench --help
+~/rocSOLVER# build/release-debug/clients/staging/rocsolver-bench --help
 
 rocSOLVER benchmark client help.
 
-Usage: build/release/clients/staging/rocsolver-bench <options>
+Usage: build/release-debug/clients/staging/rocsolver-bench <options>
 
 In addition to some common general options, the following list of options corresponds to all the parameters
 that might be needed to test a given rocSOLVER function. The parameters are named as in the API user guide.
@@ -20,7 +20,7 @@ of the problem and the tested function; if this is not possible, the program wil
 Functions that accept multiple size parameters can generally be provided a single size parameter (typically,
 m) and a square-size matrix will be assumed.
 
-Example: build/release/clients/staging/rocsolver-bench -f getf2_batched -m 30 --lda 75 --batch_count 350
+Example: build/release-debug/clients/staging/rocsolver-bench -f getf2_batched -m 30 --lda 75 --batch_count 350
 This will test getf2_batched with a set of 350 random 30x30 matrices. strideP will be set to be equal to 30.
 
 Options:

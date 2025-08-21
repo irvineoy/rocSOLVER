@@ -10,9 +10,9 @@ target_kernel_functions:
 - rocsolver_getrs_template
 - rocsolver_gesv_template
 compile_command:
-- ./install.sh -a gfx942 -c -g -d
+- ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:
-- build/release/clients/staging/rocsolver-test --gtest_filter="*GESV.*"
+- build/release-debug/clients/staging/rocsolver-test --gtest_filter="*GESV.*"
 performance_command:
-- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f gesv -r s -n 4096 --nrhs 1 --iters 3
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f gesv -r s -n 4096 --nrhs 1 --iters 3
 - rocprof-compute analyze --path rocprof_compute_profile -b 2

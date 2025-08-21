@@ -11,9 +11,9 @@ target_kernel_functions:
 - rocsolver_gebd2_template
 - rocsolver_gebrd_impl
 compile_command:
-- ./install.sh -a gfx942 -c -g -d
+- ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:
-- build/release/clients/staging/rocsolver-test --gtest_filter="*GEBRD.*"
+- build/release-debug/clients/staging/rocsolver-test --gtest_filter="*GEBRD.*"
 performance_command:
-- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f gebrd -r s -m 4096 -n 4096 --iters 3
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f gebrd -r s -m 4096 -n 4096 --iters 3
 - rocprof-compute analyze --path rocprof_compute_profile -b 2

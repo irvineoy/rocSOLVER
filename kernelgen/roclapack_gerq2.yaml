@@ -12,9 +12,9 @@ target_kernel_functions:
 - rocsolver_gerq2_impl
 - rocsolver_lacgv_template
 compile_command:
-- ./install.sh -a gfx942 -c -g -d
+- ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:
-- build/release/clients/staging/rocsolver-test --gtest_filter="*GERQ2.*"
+- build/release-debug/clients/staging/rocsolver-test --gtest_filter="*GERQ2.*"
 performance_command:
-- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f gerq2 -r s -m 4096 -n 4096 --lda 4096 --iters 3
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f gerq2 -r s -m 4096 -n 4096 --lda 4096 --iters 3
 - rocprof-compute analyze --path rocprof_compute_profile -b 2

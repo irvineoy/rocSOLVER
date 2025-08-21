@@ -9,9 +9,9 @@ target_kernel_functions:
 - rocsolver_getrf_impl
 - rocsolver_getf2_template
 compile_command:
-- ./install.sh -a gfx942 -c -g -d
+- ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:
-- build/release/clients/staging/rocsolver-test --gtest_filter="*GETRF.*"
+- build/release-debug/clients/staging/rocsolver-test --gtest_filter="*GETRF.*"
 performance_command:
-- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f getrf -r s -m 4096 --iters 3
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f getrf -r s -m 4096 --iters 3
 - rocprof-compute analyze --path rocprof_compute_profile -b 2

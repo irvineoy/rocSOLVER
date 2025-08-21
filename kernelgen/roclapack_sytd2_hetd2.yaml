@@ -9,9 +9,9 @@ target_kernel_functions:
 - rocsolver_larfg_template
 - rocsolver_sytd2_hetd2_impl
 compile_command:
-- ./install.sh -a gfx942 -c -g -d
+- ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:
-- build/release/clients/staging/rocsolver-test --gtest_filter="*SYTD2.*:*HETD2.*"
+- build/release-debug/clients/staging/rocsolver-test --gtest_filter="*SYTD2.*:*HETD2.*"
 performance_command:
-- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f sytd2 -r s -n 4096 --iters 3
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f sytd2 -r s -n 4096 --iters 3
 - rocprof-compute analyze --path rocprof_compute_profile -b 2

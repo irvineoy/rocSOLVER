@@ -13,9 +13,9 @@ target_kernel_functions:
 - rocsolver_sygvdx_hegvdx_template
 - rocsolver_sygvdx_hegvdx_impl
 compile_command:
-- ./install.sh -a gfx942 -c -g -d
+- ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:
-- build/release/clients/staging/rocsolver-test --gtest_filter="*SYGVDX.*:*HEGVDX.*"
+- build/release-debug/clients/staging/rocsolver-test --gtest_filter="*SYGVDX.*:*HEGVDX.*"
 performance_command:
-- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f sygvdx -r s -n 4096 --lda 4096 --ldb 4096 --ldz 4096 --itype 1 --evect V --erange A --uplo U --iters 3
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f sygvdx -r s -n 4096 --lda 4096 --ldb 4096 --ldz 4096 --itype 1 --evect V --erange A --uplo U --iters 3
 - rocprof-compute analyze --path rocprof_compute_profile -b 2

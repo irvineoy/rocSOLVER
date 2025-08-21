@@ -15,9 +15,9 @@ target_kernel_functions:
 - rocsolver_syevd_heevd_template
 - rocsolver_sterf_template
 compile_command:
-- ./install.sh -a gfx942 -c -g -d
+- ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:
-- build/release/clients/staging/rocsolver-test --gtest_filter="*SYEVD.*:*HEEVD.*"
+- build/release-debug/clients/staging/rocsolver-test --gtest_filter="*SYEVD.*:*HEEVD.*"
 performance_command:
-- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f syevd -r s -n 4096 --iters 3
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f syevd -r s -n 4096 --iters 3
 - rocprof-compute analyze --path rocprof_compute_profile -b 2

@@ -94,7 +94,7 @@ def extract_current_bench_command(performance_commands):
     for cmd in performance_commands:
         if 'rocsolver-bench' in cmd:
             # Try to extract with full path first
-            bench_match = re.search(r'build/release/clients/staging/rocsolver-bench[^\\n]*', cmd)
+            bench_match = re.search(r'build/release-debug/clients/staging/rocsolver-bench[^\\n]*', cmd)
             if bench_match:
                 return bench_match.group(0)
             
@@ -103,8 +103,8 @@ def extract_current_bench_command(performance_commands):
             if bench_match:
                 bench_cmd = bench_match.group(0)
                 # Add the full path prefix if not present
-                if not bench_cmd.startswith('build/release/clients/staging/'):
-                    bench_cmd = 'build/release/clients/staging/' + bench_cmd
+                if not bench_cmd.startswith('build/release-debug/clients/staging/'):
+                    bench_cmd = 'build/release-debug/clients/staging/' + bench_cmd
                 return bench_cmd
     return None
 
@@ -130,9 +130,9 @@ def call_claude_api(client, prompt):
         lines = response_text.strip().split('\n')
         for line in lines:
             line = line.strip()
-            if 'build/release/clients/staging/rocsolver-bench' in line:
+            if 'build/release-debug/clients/staging/rocsolver-bench' in line:
                 # Extract the full command from this line
-                bench_match = re.search(r'build/release/clients/staging/rocsolver-bench[^\n\r]*', line)
+                bench_match = re.search(r'build/release-debug/clients/staging/rocsolver-bench[^\n\r]*', line)
                 if bench_match:
                     return bench_match.group(0).strip(), response_text
                 else:
@@ -185,7 +185,7 @@ def update_config_file(yaml_file, config, new_bench_command):
                 if 'rocprof-compute' in cmd:
                     # For rocprof commands, replace just the bench part
                     updated_cmd = re.sub(
-                        r'build/release/clients/staging/rocsolver-bench[^\\\\]*',
+                        r'build/release-debug/clients/staging/rocsolver-bench[^\\\\]*',
                         new_bench_command,
                         cmd
                     )

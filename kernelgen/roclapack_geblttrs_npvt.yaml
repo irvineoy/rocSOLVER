@@ -9,9 +9,9 @@ target_kernel_functions:
 - rocsolver_getrs_template
 - rocsolver_geblttrs_npvt_template
 compile_command:
-- ./install.sh -a gfx942 -c -g -d
+- ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:
-- build/release/clients/staging/rocsolver-test --gtest_filter="*GEBLTTRS.*:*NPVT.*"
+- build/release-debug/clients/staging/rocsolver-test --gtest_filter="*GEBLTTRS.*:*NPVT.*"
 performance_command:
-- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f geblttrs_npvt -r s --nb 256 --nblocks 16 --nrhs 1 --lda 256 --ldb 256 --ldc 256 --ldx 4096 --iters 3
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f geblttrs_npvt -r s --nb 256 --nblocks 16 --nrhs 1 --lda 256 --ldb 256 --ldc 256 --ldx 4096 --iters 3
 - rocprof-compute analyze --path rocprof_compute_profile -b 2
