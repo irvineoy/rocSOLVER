@@ -11,11 +11,11 @@ source_file_path: &id001
 - library/src/lapack/roclapack_gesvdx.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- rocsolver_gebrd_template
 - rocsolver_gesvdx_template
-- rocsolver_ormlq_unmlq_template
+- rocsolver_gebrd_template
 - rocsolver_bdsvdx_template
 - rocsolver_ormbr_unmbr_template
+- rocsolver_ormlq_unmlq_template
 - rocsolver_gesvdx_impl
 - rocsolver_ormqr_unmqr_template
 compile_command:
@@ -23,6 +23,5 @@ compile_command:
 correctness_command:
 - build/release/clients/staging/rocsolver-test --gtest_filter="*GESVDX.*"
 performance_command:
-- rocprof-compute-rocsolver profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- \
-- '  build/release/clients/staging/rocsolver-bench -f gesvdx -r s -m 3000 -n 3000 --lda 3000 --iters 2'
-- rocprof-compute-rocsolver analyze --path rocprof_compute_profile -b 2
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f gesvdx -r s -m 4096 -n 4096 --lda 4096 --ldu 4096 --ldv 4096 --left_svect N --right_svect N --srange A --iters 3
+- rocprof-compute analyze --path rocprof_compute_profile -b 2

@@ -11,10 +11,11 @@ import re
 from pathlib import Path
 from typing import Dict, List
 import anthropic
+from datetime import datetime
 
 # Configuration
-API_KEY_FILE = "claude_api_key.txt"  # File containing the API key
-MODEL = "claude-3-5-sonnet-20241022"  # Using Claude 3.5 Sonnet as it's more widely available
+API_KEY_FILE = "kernelgen/claude_api_key.txt"  # File containing the API key
+MODEL = "claude-opus-4-1-20250805"  # Using Claude 4.1 Opus
 
 def load_api_key():
     """Load Claude API key from file"""
@@ -92,14 +93,23 @@ def extract_current_bench_command(performance_commands):
     """Extract the current rocsolver-bench command from performance_command list"""
     for cmd in performance_commands:
         if 'rocsolver-bench' in cmd:
-            # Extract just the rocsolver-bench part
+            # Try to extract with full path first
             bench_match = re.search(r'build/release/clients/staging/rocsolver-bench[^\\n]*', cmd)
             if bench_match:
                 return bench_match.group(0)
+            
+            # If not found, try without path prefix and add it
+            bench_match = re.search(r'rocsolver-bench[^\\n]*', cmd)
+            if bench_match:
+                bench_cmd = bench_match.group(0)
+                # Add the full path prefix if not present
+                if not bench_cmd.startswith('build/release/clients/staging/'):
+                    bench_cmd = 'build/release/clients/staging/' + bench_cmd
+                return bench_cmd
     return None
 
 def call_claude_api(client, prompt):
-    """Call Claude API to generate optimized bench command"""
+    """Call Claude API to generate optimized bench command. Returns (bench_command, full_response)"""
     try:
         message = client.messages.create(
             model=MODEL,
@@ -116,23 +126,51 @@ def call_claude_api(client, prompt):
         response_text = message.content[0].text
         
         # Extract the rocsolver-bench command from the response
-        bench_match = re.search(r'build/release/clients/staging/rocsolver-bench[^\\n]*', response_text)
-        if bench_match:
-            return bench_match.group(0).strip()
-        else:
-            # If no exact match, try to find any line that looks like a command
-            lines = response_text.strip().split('\\n')
-            for line in lines:
-                line = line.strip()
-                if 'rocsolver-bench' in line and line.startswith('build/'):
-                    return line
-            
-            print(f"Warning: Could not extract bench command from response: {response_text}")
-            return None
+        # First try to find lines containing the command
+        lines = response_text.strip().split('\n')
+        for line in lines:
+            line = line.strip()
+            if 'build/release/clients/staging/rocsolver-bench' in line:
+                # Extract the full command from this line
+                bench_match = re.search(r'build/release/clients/staging/rocsolver-bench[^\n\r]*', line)
+                if bench_match:
+                    return bench_match.group(0).strip(), response_text
+                else:
+                    return line.strip(), response_text
+        
+        print(f"Warning: Could not extract bench command from response: {response_text}")
+        return None, response_text
             
     except Exception as e:
         print(f"Error calling Claude API: {e}")
-        return None
+        return None, None
+
+def save_api_log(config_name, prompt, response, bench_command):
+    """Save API call input and output to a log file"""
+    log_dir = Path("kernelgen/logs")
+    log_dir.mkdir(exist_ok=True)
+    
+    # Create timestamp for unique log filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = log_dir / f"{config_name}_api.log"
+    
+    log_content = {
+        "timestamp": datetime.now().isoformat(),
+        "config_name": config_name,
+        "model": MODEL,
+        "input_prompt": prompt,
+        "api_response": response,
+        "extracted_bench_command": bench_command
+    }
+    
+    try:
+        with open(log_file, 'w', encoding='utf-8') as f:
+            json.dump(log_content, f, indent=2, ensure_ascii=False)
+        print(f"  📝 Log saved to: {log_file}")
+        return True
+    except Exception as e:
+        print(f"  ⚠️ Failed to save log: {e}")
+        return False
 
 def update_config_file(yaml_file, config, new_bench_command):
     """Update the config file with the new bench command"""
@@ -144,7 +182,7 @@ def update_config_file(yaml_file, config, new_bench_command):
         for cmd in config.get('performance_command', []):
             if 'rocsolver-bench' in cmd:
                 # Replace the rocsolver-bench part with the new command
-                if 'rocprof-compute-rocsolver' in cmd:
+                if 'rocprof-compute' in cmd:
                     # For rocprof commands, replace just the bench part
                     updated_cmd = re.sub(
                         r'build/release/clients/staging/rocsolver-bench[^\\\\]*',
@@ -165,7 +203,7 @@ def update_config_file(yaml_file, config, new_bench_command):
             # Write back to file
             with open(yaml_file, 'w') as f:
                 yaml.dump(config, f, default_flow_style=False, sort_keys=False, 
-                         allow_unicode=True, width=120)
+                         allow_unicode=True, width=1000)
             
             return True
         else:
@@ -216,7 +254,11 @@ def process_config_file(client, yaml_file, template):
     print(f"  Calling Claude API...")
     
     # Call Claude API
-    new_bench_command = call_claude_api(client, prompt)
+    new_bench_command, api_response = call_claude_api(client, prompt)
+    
+    # Save the API log
+    config_name = Path(yaml_file).stem
+    save_api_log(config_name, prompt, api_response, new_bench_command)
     
     if not new_bench_command:
         print(f"  ❌ Failed to get response from Claude API")
@@ -282,6 +324,7 @@ def main():
         except Exception as e:
             print(f"  ❌ Exception processing {yaml_file}: {e}")
             failed += 1
+        # break # TODO: DEBUG
     
     # Print summary
     print(f"\\n{'='*50}")

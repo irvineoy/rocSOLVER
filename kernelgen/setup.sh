@@ -36,10 +36,10 @@ VENV_PYTHON="$CUR_DIR/.venv/bin/python"
 if [ -f "/opt/rocm/bin/rocprof-compute" ]; then
     uv pip install -r /opt/rocm/libexec/rocprofiler-compute/requirements.txt --no-cache-dir
 
-    alias rocprof-compute-rocsolver="$VENV_PYTHON /opt/rocm/bin/rocprof-compute"
+    alias rocprof-compute="$VENV_PYTHON /opt/rocm/bin/rocprof-compute"
 
     # Prepare the alias command with the venv python
-    ALIAS_CMD="alias rocprof-compute-rocsolver=\"$VENV_PYTHON /opt/rocm/bin/rocprof-compute\""
+    ALIAS_CMD="alias rocprof-compute=\"$VENV_PYTHON /opt/rocm/bin/rocprof-compute\""
 
     # Check if the alias already exists in .bashrc to avoid duplicates
     if ! grep -Fxq "$ALIAS_CMD" ~/.bashrc; then

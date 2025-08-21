@@ -47,9 +47,13 @@ def extract_benchmark_commands(performance_commands):
     for cmd in performance_commands:
         # Look for rocsolver-bench commands
         if 'rocsolver-bench' in cmd:
-            # Modify --iters parameter to 1
-            modified_cmd = re.sub(r'--iters\s+\d+', '--iters 1', cmd)
-            bench_commands.append(modified_cmd)
+            # Extract the rocsolver-bench subcommand starting from build/release
+            bench_match = re.search(r'build/release/clients/staging/rocsolver-bench[^$]*', cmd)
+            if bench_match:
+                bench_cmd = bench_match.group(0).strip()
+                # Modify --iters parameter to 1
+                modified_cmd = re.sub(r'--iters\s+\d+', '--iters 1', bench_cmd)
+                bench_commands.append(modified_cmd)
     
     return bench_commands
 

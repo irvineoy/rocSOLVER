@@ -6,16 +6,15 @@ source_file_path: &id001
 - library/src/lapack/roclapack_geql2.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- rocsolver_larfg_template
-- rocsolver_larf_template
 - rocsolver_geql2_impl
 - rocsolver_geql2_template
+- rocsolver_larf_template
+- rocsolver_larfg_template
 - rocsolver_lacgv_template
 compile_command:
 - ./install.sh -a gfx942 -c -g -d
 correctness_command:
 - build/release/clients/staging/rocsolver-test --gtest_filter="*GEQL2.*"
 performance_command:
-- rocprof-compute-rocsolver profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- \
-- '  build/release/clients/staging/rocsolver-bench -f geql2 -r s -m 3000 -n 3000 --lda 3000 --iters 2'
-- rocprof-compute-rocsolver analyze --path rocprof_compute_profile -b 2
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f geql2 -r s -m 4096 -n 4096 --lda 4096 --iters 3
+- rocprof-compute analyze --path rocprof_compute_profile -b 2

@@ -6,16 +6,15 @@ source_file_path: &id001
 - library/src/lapack/roclapack_sygv_hegv.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- rocsolver_sygv_hegv_impl
-- rocsolver_syev_heev_template
-- rocsolver_sygst_hegst_template
-- rocsolver_sygv_hegv_template
 - rocsolver_potrf_template
+- rocsolver_sygst_hegst_template
+- rocsolver_syev_heev_template
+- rocsolver_sygv_hegv_template
+- rocsolver_sygv_hegv_impl
 compile_command:
 - ./install.sh -a gfx942 -c -g -d
 correctness_command:
 - build/release/clients/staging/rocsolver-test --gtest_filter="*SYGV.*:*HEGV.*"
 performance_command:
-- rocprof-compute-rocsolver profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- \
-- '  build/release/clients/staging/rocsolver-bench -f sygv -r s -m 3000 -n 3000 --lda 3000 --iters 2'
-- rocprof-compute-rocsolver analyze --path rocprof_compute_profile -b 2
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f sygv -r s -n 4096 --iters 3
+- rocprof-compute analyze --path rocprof_compute_profile -b 2

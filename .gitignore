@@ -39,6 +39,7 @@ tags
 build/
 docBin/
 kernelgen/logs/
+kernelgen/claude_api_key.txt
 .venv/
 
 # emacs temporary/backup files

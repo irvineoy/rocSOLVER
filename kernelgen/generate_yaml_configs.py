@@ -221,8 +221,8 @@ def generate_yaml_config(base_name: str, files: List[str]) -> Dict:
             f'build/release/clients/staging/rocsolver-test --gtest_filter={test_filter}'
         ],
         'performance_command': [
-            f'rocprof-compute-rocsolver profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f {bench_func} -r s -m 3000 -n 3000 --lda 3000 --iters 2',
-            'rocprof-compute-rocsolver analyze --path rocprof_compute_profile -b 2'
+            f'rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f {bench_func} -r s -m 3000 -n 3000 --lda 3000 --iters 2',
+            'rocprof-compute analyze --path rocprof_compute_profile -b 2'
         ]
     }
     
@@ -256,7 +256,7 @@ def main():
         if config['source_file_path']:
             with open(output_file, 'w') as f:
                 yaml.dump(config, f, default_flow_style=False, sort_keys=False, 
-                         allow_unicode=True, width=120)
+                         allow_unicode=True, width=1000)
             print(f"Generated: {output_file}")
             generated_count += 1
         else:

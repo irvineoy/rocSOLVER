@@ -46,13 +46,13 @@ python3 kernelgen/generate_optimized_bench_commands.py
 **Before:**
 ```yaml
 performance_command:
-- rocprof-compute-rocsolver profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f getrf -r s -m 3000 -n 3000 --lda 3000 --iters 2
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f getrf -r s -m 3000 -n 3000 --lda 3000 --iters 2
 ```
 
 **After:**
 ```yaml
 performance_command:
-- rocprof-compute-rocsolver profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f getrf -r s -m 4096 -n 4096 --lda 4096 --iters 1
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release/clients/staging/rocsolver-bench -f getrf -r s -m 4096 -n 4096 --lda 4096 --iters 1
 ```
 
 ## Requirements
