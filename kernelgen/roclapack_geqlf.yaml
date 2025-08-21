@@ -1,0 +1,21 @@
+source_file_path: &id001
+- library/src/auxiliary/rocauxiliary_larfb.hpp
+- library/src/auxiliary/rocauxiliary_larft.hpp
+- library/src/lapack/roclapack_geql2.hpp
+- library/src/lapack/roclapack_geqlf.cpp
+- library/src/lapack/roclapack_geqlf.hpp
+gen_file_path: *id001
+target_kernel_functions:
+- rocsolver_larfb_template
+- rocsolver_geqlf_template
+- rocsolver_geqlf_impl
+- rocsolver_larft_template
+- rocsolver_geql2_template
+compile_command:
+- ./install.sh -a gfx942 -c -g -d
+correctness_command:
+- build/release/clients/staging/rocsolver-test --gtest_filter="*GEQLF.*"
+performance_command:
+- rocprof-compute-rocsolver profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- \
+- '  build/release/clients/staging/rocsolver-bench -f geqlf -r s -m 3000 -n 3000 --lda 3000 --iters 2'
+- rocprof-compute-rocsolver analyze --path rocprof_compute_profile -b 2

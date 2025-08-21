@@ -1,24 +1,23 @@
 source_file_path: &id001
-- library/src/auxiliary/rocauxiliary_ormtr_unmtr.hpp
-- library/src/auxiliary/rocauxiliary_stedc.hpp
+- library/src/auxiliary/rocauxiliary_orgtr_ungtr.hpp
+- library/src/auxiliary/rocauxiliary_steqr.hpp
 - library/src/auxiliary/rocauxiliary_sterf.hpp
+- library/src/lapack/roclapack_syev_heev.cpp
 - library/src/lapack/roclapack_syev_heev.hpp
-- library/src/lapack/roclapack_syevd_heevd.cpp
-- library/src/lapack/roclapack_syevd_heevd.hpp
 - library/src/lapack/roclapack_sytrd_hetrd.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- rocsolver_ormtr_unmtr_template
-- rocsolver_syevd_heevd_template
+- rocsolver_orgtr_ungtr_template
+- rocsolver_syev_heev_template
 - rocsolver_sterf_template
-- rocsolver_stedc_template
-- rocsolver_syevd_heevd_impl
 - rocsolver_sytrd_hetrd_template
+- rocsolver_steqr_template
+- rocsolver_syev_heev_impl
 compile_command:
 - ./install.sh -a gfx942 -c -g -d
 correctness_command:
-- build/release/clients/staging/rocsolver-test --gtest_filter="*SYEVD.*:*HEEVD.*"
+- build/release/clients/staging/rocsolver-test --gtest_filter="*SYEV.*:*HEEV.*"
 performance_command:
 - rocprof-compute-rocsolver profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- \
-- '  build/release/clients/staging/rocsolver-bench -f syevd -r s -m 3000 -n 3000 --lda 3000 --iters 2'
+- '  build/release/clients/staging/rocsolver-bench -f syev -r s -m 3000 -n 3000 --lda 3000 --iters 2'
 - rocprof-compute-rocsolver analyze --path rocprof_compute_profile -b 2

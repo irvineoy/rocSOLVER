@@ -1,0 +1,27 @@
+source_file_path: &id001
+- library/src/auxiliary/rocauxiliary_orglq_unglq.hpp
+- library/src/auxiliary/rocauxiliary_orgqr_ungqr.hpp
+- library/src/include/rocsolver_run_specialized_kernels.hpp
+- library/src/lapack/roclapack_gelqf.hpp
+- library/src/lapack/roclapack_geqrf.hpp
+- library/src/lapack/roclapack_gesdd.cpp
+- library/src/lapack/roclapack_gesdd.hpp
+- library/src/lapack/roclapack_syevd_heevd.hpp
+- library/src/lapack/roclapack_syevj_heevj.hpp
+gen_file_path: *id001
+target_kernel_functions:
+- rocsolver_orglq_unglq_template
+- rocsolver_gelqf_template
+- rocsolver_gesdd_template
+- rocsolver_orgqr_ungqr_template
+- rocsolver_gesdd_impl
+- rocsolver_syevd_heevd_template
+- rocsolver_geqrf_template
+compile_command:
+- ./install.sh -a gfx942 -c -g -d
+correctness_command:
+- build/release/clients/staging/rocsolver-test --gtest_filter="*GESDD.*"
+performance_command:
+- rocprof-compute-rocsolver profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- \
+- '  build/release/clients/staging/rocsolver-bench -f gesdd -r s -m 3000 -n 3000 --lda 3000 --iters 2'
+- rocprof-compute-rocsolver analyze --path rocprof_compute_profile -b 2

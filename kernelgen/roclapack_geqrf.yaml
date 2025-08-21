@@ -1,0 +1,23 @@
+source_file_path: &id001
+- library/src/auxiliary/rocauxiliary_larfb.hpp
+- library/src/auxiliary/rocauxiliary_larft.hpp
+- library/src/lapack/roclapack_geqr2.hpp
+- library/src/lapack/roclapack_geqrf.cpp
+- library/src/lapack/roclapack_geqrf.hpp
+gen_file_path: *id001
+target_kernel_functions:
+- rocsolver_larfb_template
+- rocsolver_larft_inverse_template
+- rocsolver_larfb_inverse_template
+- rocsolver_geqr2_template
+- rocsolver_geqrf_template
+- rocsolver_larft_template
+- rocsolver_geqrf_impl
+compile_command:
+- ./install.sh -a gfx942 -c -g -d
+correctness_command:
+- build/release/clients/staging/rocsolver-test --gtest_filter="*GEQRF.*"
+performance_command:
+- rocprof-compute-rocsolver profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- \
+- '  build/release/clients/staging/rocsolver-bench -f geqrf -r s -m 3000 -n 3000 --lda 3000 --iters 2'
+- rocprof-compute-rocsolver analyze --path rocprof_compute_profile -b 2

@@ -1,0 +1,22 @@
+source_file_path: &id001
+- library/src/lapack/roclapack_potrf.hpp
+- library/src/lapack/roclapack_syevdx_heevdx.hpp
+- library/src/lapack/roclapack_sygst_hegst.hpp
+- library/src/lapack/roclapack_sygvdx_hegvdx.cpp
+- library/src/lapack/roclapack_sygvdx_hegvdx.hpp
+- library/src/lapack/roclapack_sygvx_hegvx.hpp
+gen_file_path: *id001
+target_kernel_functions:
+- rocsolver_sygst_hegst_template
+- rocsolver_sygvdx_hegvdx_template
+- rocsolver_syevdx_heevdx_template
+- rocsolver_sygvdx_hegvdx_impl
+- rocsolver_potrf_template
+compile_command:
+- ./install.sh -a gfx942 -c -g -d
+correctness_command:
+- build/release/clients/staging/rocsolver-test --gtest_filter="*SYGVDX.*:*HEGVDX.*"
+performance_command:
+- rocprof-compute-rocsolver profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- \
+- '  build/release/clients/staging/rocsolver-bench -f sygvdx -r s -m 3000 -n 3000 --lda 3000 --iters 2'
+- rocprof-compute-rocsolver analyze --path rocprof_compute_profile -b 2

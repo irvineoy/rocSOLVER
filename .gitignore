@@ -38,6 +38,8 @@ tags
 # build-in-source directory
 build/
 docBin/
+kernelgen/logs/
+.venv/
 
 # emacs temporary/backup files
 .\#*

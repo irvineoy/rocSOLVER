@@ -1,0 +1,18 @@
+source_file_path: &id001
+- library/src/auxiliary/rocauxiliary_lacgv.hpp
+- library/src/include/lapack_device_functions.hpp
+- library/src/lapack/roclapack_sygs2_hegs2.cpp
+- library/src/lapack/roclapack_sygs2_hegs2.hpp
+gen_file_path: *id001
+target_kernel_functions:
+- rocsolver_lacgv_template
+- rocsolver_sygs2_hegs2_template
+- rocsolver_sygs2_hegs2_impl
+compile_command:
+- ./install.sh -a gfx942 -c -g -d
+correctness_command:
+- build/release/clients/staging/rocsolver-test --gtest_filter="*SYGS2.*:*HEGS2.*"
+performance_command:
+- rocprof-compute-rocsolver profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- \
+- '  build/release/clients/staging/rocsolver-bench -f sygs2 -r s -m 3000 -n 3000 --lda 3000 --iters 2'
+- rocprof-compute-rocsolver analyze --path rocprof_compute_profile -b 2

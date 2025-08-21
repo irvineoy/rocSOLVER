@@ -1,0 +1,17 @@
+source_file_path: &id001
+- library/src/lapack/roclapack_potri.cpp
+- library/src/lapack/roclapack_potri.hpp
+- library/src/lapack/roclapack_trtri.hpp
+gen_file_path: *id001
+target_kernel_functions:
+- rocsolver_trtri_template
+- rocsolver_potri_impl
+- rocsolver_potri_template
+compile_command:
+- ./install.sh -a gfx942 -c -g -d
+correctness_command:
+- build/release/clients/staging/rocsolver-test --gtest_filter="*POTRI.*"
+performance_command:
+- rocprof-compute-rocsolver profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- \
+- '  build/release/clients/staging/rocsolver-bench -f potri -r s -m 3000 -n 3000 --lda 3000 --iters 2'
+- rocprof-compute-rocsolver analyze --path rocprof_compute_profile -b 2
