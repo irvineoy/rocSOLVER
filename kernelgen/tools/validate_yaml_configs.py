@@ -89,6 +89,7 @@ def validate_yaml_file(yaml_path: str) -> Tuple[bool, List[str]]:
     return len(errors) == 0, errors
 
 def main():
+    # YAML files are in parent kernelgen directory
     kernelgen_dir = "kernelgen"
     
     # Get all YAML files

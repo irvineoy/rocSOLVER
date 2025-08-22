@@ -18,6 +18,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Configuration
 MAX_PARALLEL_TESTS = 8  # Number of tests to run in parallel
+# Log directory - script is run from root directory
 LOG_DIR = "kernelgen/logs"
 
 def setup_logging():

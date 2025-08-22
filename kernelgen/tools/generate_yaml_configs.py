@@ -154,10 +154,22 @@ def get_bench_function_name(base_name: str) -> str:
     parts = base_name.split('_')
     return parts[0]
 
-def generate_yaml_config(base_name: str, files: List[str]) -> Dict:
+def generate_yaml_config(base_name: str, files: List[str], existing_yaml_path: str = None) -> Dict:
     """
     Generate YAML configuration for a specific function group.
+    If existing_yaml_path is provided and exists, preserve its commands.
     """
+    # Check if YAML file already exists and load it
+    existing_config = None
+    if existing_yaml_path and os.path.exists(existing_yaml_path):
+        try:
+            with open(existing_yaml_path, 'r') as f:
+                existing_config = yaml.safe_load(f)
+            print(f"  Loading existing config from {existing_yaml_path}")
+        except Exception as e:
+            print(f"  Warning: Could not load existing YAML: {e}")
+            existing_config = None
+    
     # Determine source and gen file paths
     source_files = []
     gen_files = []
@@ -200,36 +212,44 @@ def generate_yaml_config(base_name: str, files: List[str]) -> Dict:
     # Find kernel functions in all source files including dependencies
     target_functions = find_kernel_functions(source_files) # TODO: could also try all_source_files
     
-    # If no kernel functions found, use a default pattern
-    # if not target_functions:
-    #     target_functions = [f"rocsolver_{base_name}", f"rocsolver_{base_name}_template"]
-    
-    # Generate test filter
-    test_filter = get_test_filter(base_name)
-    
-    # Generate bench function name
-    bench_func = get_bench_function_name(base_name)
-    
-    config = {
-        'source_file_path': all_source_files,  # Include dependencies for analysis
-        'gen_file_path': all_source_files, 
-        'target_kernel_functions': target_functions,
-        'compile_command': [
-            './install.sh --architecture gfx942 --clients --relwithdebinfo'
-        ],
-        'correctness_command': [
-            f'build/release-debug/clients/staging/rocsolver-test --gtest_filter={test_filter}'
-        ],
-        'performance_command': [
-            f'rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f {bench_func} -r s -m 3000 -n 3000 --lda 3000 --iters 2',
-            'rocprof-compute analyze --path rocprof_compute_profile -b 2'
-        ]
-    }
+    # If existing config exists, preserve commands and only update paths/functions
+    if existing_config:
+        config = existing_config.copy()
+        # Only override these three fields
+        config['source_file_path'] = all_source_files
+        config['gen_file_path'] = all_source_files
+        config['target_kernel_functions'] = target_functions
+        print(f"  Updated paths and functions, preserved existing commands")
+    else:
+        # Create new config with default values
+        # Generate test filter
+        test_filter = get_test_filter(base_name)
+        
+        # Generate bench function name
+        bench_func = get_bench_function_name(base_name)
+        
+        config = {
+            'source_file_path': all_source_files,  # Include dependencies for analysis
+            'gen_file_path': all_source_files, 
+            'target_kernel_functions': target_functions,
+            'compile_command': [
+                './install.sh --architecture gfx942 --clients --relwithdebinfo'
+            ],
+            'correctness_command': [
+                f'build/release-debug/clients/staging/rocsolver-test --gtest_filter={test_filter}'
+            ],
+            'performance_command': [
+                f'rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f {bench_func} -r s -m 3000 -n 3000 --lda 3000 --iters 2',
+                'rocprof-compute analyze --path rocprof_compute_profile -b 2'
+            ]
+        }
+        print(f"  Created new config with default commands")
     
     return config
 
 def main():
     lapack_dir = "library/src/lapack"
+    # Output YAML files to parent kernelgen directory (not tools/)
     output_dir = "kernelgen"
     
     # Create output directory if it doesn't exist
@@ -242,27 +262,37 @@ def main():
     
     # Generate YAML config for each function group
     generated_count = 0
+    updated_count = 0
     for base_name, files in function_groups.items():
         output_file = os.path.join(output_dir, f"roclapack_{base_name}.yaml")
         
-        # Skip if file already exists
-        if os.path.exists(output_file):
-            print(f"Skipping {base_name} - file already exists")
-            continue
+        # Check if file already exists
+        file_exists = os.path.exists(output_file)
         
-        config = generate_yaml_config(base_name, files)
+        if file_exists:
+            print(f"Updating {base_name} - preserving existing commands")
+            config = generate_yaml_config(base_name, files, output_file)
+            updated_count += 1
+        else:
+            print(f"Creating new config for {base_name}")
+            config = generate_yaml_config(base_name, files)
+            generated_count += 1
         
         # Only write if we have valid source files
         if config['source_file_path']:
             with open(output_file, 'w') as f:
                 yaml.dump(config, f, default_flow_style=False, sort_keys=False, 
                          allow_unicode=True, width=1000)
-            print(f"Generated: {output_file}")
-            generated_count += 1
+            if file_exists:
+                print(f"Updated: {output_file}")
+            else:
+                print(f"Generated: {output_file}")
         else:
             print(f"Skipping {base_name} - no source files found")
     
-    print(f"\nGenerated {generated_count} new YAML configuration files")
+    print(f"\nSummary:")
+    print(f"  Generated {generated_count} new YAML configuration files")
+    print(f"  Updated {updated_count} existing YAML configuration files")
 
 if __name__ == "__main__":
     main()

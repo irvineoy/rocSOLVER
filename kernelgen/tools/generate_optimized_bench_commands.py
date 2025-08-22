@@ -14,7 +14,8 @@ import anthropic
 from datetime import datetime
 
 # Configuration
-API_KEY_FILE = "kernelgen/claude_api_key.txt"  # File containing the API key
+# Assuming script is run from root directory
+API_KEY_FILE = "kernelgen/tools/claude_api_key.txt"  # File containing the API key
 MODEL = "claude-opus-4-1-20250805"  # Using Claude 4.1 Opus
 
 def load_api_key():
@@ -38,7 +39,8 @@ def load_api_key():
 def load_rocsolver_bench_context():
     """Load the prompt template from rocsolver-bench_context.py"""
     try:
-        with open("kernelgen/rocsolver-bench_context.py", 'r') as f:
+        # Script is run from root directory
+        with open("kernelgen/tools/rocsolver-bench_context.py", 'r') as f:
             content = f.read()
         
         # Extract the template string
@@ -147,6 +149,7 @@ def call_claude_api(client, prompt):
 
 def save_api_log(config_name, prompt, response, bench_command):
     """Save API call input and output to a log file"""
+    # Log directory in kernelgen/logs
     log_dir = Path("kernelgen/logs")
     log_dir.mkdir(exist_ok=True)
     

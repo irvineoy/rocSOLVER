@@ -31,8 +31,8 @@ else()
 endif()'''
     
     # Get the path to the root CMakeLists.txt
-    script_dir = Path(__file__).parent
-    cmake_file = script_dir.parent / "CMakeLists.txt"
+    # Since this script is in kernelgen/tools/ and run from root directory
+    cmake_file = Path("CMakeLists.txt")
     
     if not cmake_file.exists():
         print(f"Error: CMakeLists.txt not found at {cmake_file}")
