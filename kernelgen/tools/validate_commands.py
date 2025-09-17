@@ -21,6 +21,18 @@ MAX_PARALLEL_TESTS = 8  # Number of tests to run in parallel
 # Log directory - script is run from root directory
 LOG_DIR = "kernelgen/logs"
 
+def clean_log_directory():
+    """Delete all log files in the log directory"""
+    if os.path.exists(LOG_DIR):
+        print(f"Cleaning log directory: {LOG_DIR}")
+        for file in os.listdir(LOG_DIR):
+            file_path = os.path.join(LOG_DIR, file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(f"Error deleting file {file_path}: {e}")
+
 def setup_logging():
     """Create log directory if it doesn't exist"""
     os.makedirs(LOG_DIR, exist_ok=True)
@@ -102,14 +114,45 @@ def execute_command(command, log_file, test_type=""):
         
         return False
 
-def run_correctness_test(yaml_file, config):
+def parse_and_convert_time(log_file):
+    """Parse performance log file to convert cpu and gpu time to minutes"""
+    try:
+        with open(log_file, 'r') as log:
+            content = log.read()
+        
+        # Updated regex to handle 'nan' for both cpu_time_us and gpu_time_us
+        match = re.search(r"cpu_time_us\s+gpu_time_us\s*\n(nan|\d+)\s+(nan|\d+)", content)
+        
+        if match:
+            cpu_time_str = match.group(1)
+            gpu_time_str = match.group(2)
+
+            if cpu_time_str == 'nan':
+                cpu_time_min = float('nan')
+            else:
+                cpu_time_us = int(cpu_time_str)
+                cpu_time_min = cpu_time_us / 1e6 / 60
+
+            if gpu_time_str == 'nan':
+                gpu_time_min = float('nan')
+            else:
+                gpu_time_us = int(gpu_time_str)
+                gpu_time_min = gpu_time_us / 1e6 / 60
+            
+            result = (f"Converted execution times:\n"
+                      f"  CPU time: {cpu_time_min:.4f} minutes\n"
+                      f"  GPU time: {gpu_time_min:.4f} minutes")
+            
+            return result
+        
+        return "Performance data not found in log."
+    except Exception as e:
+        return f"Error parsing performance data: {e}"
+
+def run_correctness_test(yaml_file, config, log_file):
     """Run correctness test for a single yaml file"""
-    config_name = Path(yaml_file).stem
-    log_file = os.path.join(LOG_DIR, f"{config_name}_correctness.log")
-    
-    # Initialize log file
-    with open(log_file, 'w') as log:
-        log.write(f"Correctness test log for: {yaml_file}\n")
+    with open(log_file, 'a') as log:
+        log.write(f"\n--- Correctness test for: {yaml_file} ---\n")
         log.write(f"Test started at: {datetime.now()}\n")
         log.write("=" * 80 + "\n\n")
     
@@ -125,7 +168,6 @@ def run_correctness_test(yaml_file, config):
             log.write(f"  {i}. {cmd}\n")
         log.write("\n")
     
-    # Execute all correctness commands
     all_success = True
     for i, command in enumerate(correctness_commands, 1):
         with open(log_file, 'a') as log:
@@ -137,7 +179,6 @@ def run_correctness_test(yaml_file, config):
             with open(log_file, 'a') as log:
                 log.write(f"Correctness command {i} failed!\n\n")
     
-    # Write final result
     with open(log_file, 'a') as log:
         if all_success:
             log.write(f"✅ All correctness tests passed for {yaml_file}\n")
@@ -147,14 +188,10 @@ def run_correctness_test(yaml_file, config):
     
     return all_success, "Correctness test completed"
 
-def run_performance_test(yaml_file, config):
+def run_performance_test(yaml_file, config, log_file):
     """Run performance test for a single yaml file"""
-    config_name = Path(yaml_file).stem
-    log_file = os.path.join(LOG_DIR, f"{config_name}_performance.log")
-    
-    # Initialize log file
-    with open(log_file, 'w') as log:
-        log.write(f"Performance test log for: {yaml_file}\n")
+    with open(log_file, 'a') as log:
+        log.write(f"\n--- Performance test for: {yaml_file} ---\n")
         log.write(f"Test started at: {datetime.now()}\n")
         log.write("=" * 80 + "\n\n")
     
@@ -164,9 +201,7 @@ def run_performance_test(yaml_file, config):
             log.write(f"No performance_command found in {yaml_file}\n")
         return False, "No performance_command"
     
-    # Extract only benchmark commands and modify iters to 1
     bench_commands = extract_benchmark_commands(performance_commands)
-    
     if not bench_commands:
         with open(log_file, 'a') as log:
             log.write(f"No rocsolver-bench commands found in performance_command for {yaml_file}\n")
@@ -178,7 +213,6 @@ def run_performance_test(yaml_file, config):
             log.write(f"  {i}. {cmd}\n")
         log.write("\n")
     
-    # Execute all benchmark commands
     all_success = True
     for i, command in enumerate(bench_commands, 1):
         with open(log_file, 'a') as log:
@@ -190,7 +224,12 @@ def run_performance_test(yaml_file, config):
             with open(log_file, 'a') as log:
                 log.write(f"Performance command {i} failed!\n\n")
     
-    # Write final result
+    if all_success:
+        converted_times = parse_and_convert_time(log_file)
+        print(f"Processed {Path(yaml_file).name}:\n{converted_times}")
+        with open(log_file, 'a') as log:
+            log.write("\n" + converted_times + "\n")
+
     with open(log_file, 'a') as log:
         if all_success:
             log.write(f"✅ All performance tests passed for {yaml_file}\n")
@@ -202,6 +241,15 @@ def run_performance_test(yaml_file, config):
 
 def run_single_test(yaml_file, test_type="both"):
     """Run correctness and/or performance test for a single yaml file"""
+    config_name = Path(yaml_file).stem
+    log_file = os.path.join(LOG_DIR, f"{config_name}_test.log")
+    
+    # Initialize log file
+    with open(log_file, 'w') as log:
+        log.write(f"Test log for: {yaml_file}\n")
+        log.write(f"Test started at: {datetime.now()}\n")
+        log.write("=" * 80 + "\n")
+
     config = load_yaml_config(yaml_file)
     if not config:
         return yaml_file, False, False, "Configuration load failed"
@@ -211,17 +259,18 @@ def run_single_test(yaml_file, test_type="both"):
     messages = []
     
     if test_type in ["both", "correctness"]:
-        correctness_success, msg = run_correctness_test(yaml_file, config)
+        correctness_success, msg = run_correctness_test(yaml_file, config, log_file)
         messages.append(f"Correctness: {msg}")
     
     if test_type in ["both", "performance"]:
-        performance_success, msg = run_performance_test(yaml_file, config)
+        performance_success, msg = run_performance_test(yaml_file, config, log_file)
         messages.append(f"Performance: {msg}")
     
     return yaml_file, correctness_success, performance_success, " | ".join(messages)
 
 def run_tests(test_type="both"):
     """Main function: execute all tests in parallel"""
+    clean_log_directory()
     setup_logging()
     
     yaml_files = find_yaml_files()
