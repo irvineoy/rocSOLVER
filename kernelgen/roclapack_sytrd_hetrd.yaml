@@ -1,11 +1,11 @@
 source_file_path: &id001
+- /root/rocSOLVER/library/src/lapack/roclapack_sytd2_hetd2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sytrd_hetrd.cpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sytrd_hetrd.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_lacgv.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larfg.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_latrd.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_sytd2_hetd2.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_sytrd_hetrd.cpp
-- /root/rocSOLVER/library/src/lapack/roclapack_sytrd_hetrd.hpp
 gen_file_path: *id001
 target_kernel_functions:
 - latrd_dot_scale_axpy

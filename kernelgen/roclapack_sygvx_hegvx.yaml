@@ -1,4 +1,13 @@
 source_file_path: &id001
+- /root/rocSOLVER/library/src/lapack/roclapack_potf2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_potrf.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_syevx_heevx.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sygs2_hegs2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sygst_hegst.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sygvx_hegvx.cpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sygvx_hegvx.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sytd2_hetd2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sytrd_hetrd.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_lacgv.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larf.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larfb.hpp
@@ -12,25 +21,16 @@ source_file_path: &id001
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_ormtr_unmtr.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_stebz.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_stein.hpp
-- /root/rocSOLVER/library/src/include/ideal_sizes.hpp
-- /root/rocSOLVER/library/src/include/lapack_device_functions.hpp
 - /root/rocSOLVER/library/src/include/lib_device_helpers.hpp
 - /root/rocSOLVER/library/src/include/lib_host_helpers.hpp
 - /root/rocSOLVER/library/src/include/lib_macros.hpp
 - /root/rocSOLVER/library/src/include/libcommon.hpp
+- /root/rocSOLVER/library/src/include/ideal_sizes.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_logger.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_logvalue.hpp
+- /root/rocSOLVER/library/src/include/lapack_device_functions.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_prng.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_potf2.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_potrf.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_syevx_heevx.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_sygs2_hegs2.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_sygst_hegst.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_sygvx_hegvx.cpp
-- /root/rocSOLVER/library/src/lapack/roclapack_sygvx_hegvx.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_sytd2_hetd2.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_sytrd_hetrd.hpp
 gen_file_path: *id001
 target_kernel_functions:
 - addmatA1
@@ -61,25 +61,17 @@ target_kernel_functions:
 - rocsolver_larfb_template
 - rocsolver_larft_inverse_template
 - rocsolver_larft_template
-- rocsolver_latrd_forsytrd_template
 - rocsolver_latrd_template
 - rocsolver_orm2l_unm2l_template
 - rocsolver_orm2r_unm2r_template
 - rocsolver_ormql_unmql_template
-- rocsolver_ormqr_unmqr_template
-- rocsolver_ormtr_unmtr_template
-- rocsolver_potf2_template
-- rocsolver_potrf_template
 - rocsolver_prng_impl
 - rocsolver_stebz_template
 - rocsolver_stein_template
-- rocsolver_syevx_heevx_template
 - rocsolver_sygs2_hegs2_template
 - rocsolver_sygst_hegst_template
 - rocsolver_sygvx_hegvx_impl
 - rocsolver_sygvx_hegvx_template
-- rocsolver_sytd2_hetd2_template
-- rocsolver_sytrd_hetrd_template
 - set_taubeta
 - set_triangular
 - set_tridiag
@@ -89,13 +81,10 @@ target_kernel_functions:
 - stebz_splitting_kernel
 - stebz_synthesis_kernel
 - stein_kernel
-- syevx_sort_eigs
 - sygs2_set_diag1
 - sygs2_set_diag2
 - sygs2_set_diag3
 - sygvx_update_info
-- sytd2_lower_kernel_small
-- sytd2_upper_kernel_small
 compile_command:
 - ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:

@@ -1,4 +1,8 @@
 source_file_path: &id001
+- /root/rocSOLVER/library/src/lapack/roclapack_syevx_heevx.cpp
+- /root/rocSOLVER/library/src/lapack/roclapack_syevx_heevx.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sytd2_hetd2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sytrd_hetrd.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_lacgv.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larf.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larfb.hpp
@@ -12,20 +16,16 @@ source_file_path: &id001
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_ormtr_unmtr.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_stebz.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_stein.hpp
-- /root/rocSOLVER/library/src/include/ideal_sizes.hpp
-- /root/rocSOLVER/library/src/include/lapack_device_functions.hpp
 - /root/rocSOLVER/library/src/include/lib_device_helpers.hpp
 - /root/rocSOLVER/library/src/include/lib_host_helpers.hpp
 - /root/rocSOLVER/library/src/include/lib_macros.hpp
 - /root/rocSOLVER/library/src/include/libcommon.hpp
+- /root/rocSOLVER/library/src/include/ideal_sizes.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_logger.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_logvalue.hpp
+- /root/rocSOLVER/library/src/include/lapack_device_functions.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_prng.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_syevx_heevx.cpp
-- /root/rocSOLVER/library/src/lapack/roclapack_syevx_heevx.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_sytd2_hetd2.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_sytrd_hetrd.hpp
 gen_file_path: *id001
 target_kernel_functions:
 - addmatA1
@@ -60,7 +60,6 @@ target_kernel_functions:
 - rocsolver_orm2l_unm2l_template
 - rocsolver_orm2r_unm2r_template
 - rocsolver_ormql_unmql_template
-- rocsolver_ormqr_unmqr_template
 - rocsolver_ormtr_unmtr_template
 - rocsolver_prng_impl
 - rocsolver_stebz_template

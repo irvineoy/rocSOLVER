@@ -1,8 +1,8 @@
 source_file_path: &id001
-- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_laswp.hpp
-- /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
 - /root/rocSOLVER/library/src/lapack/roclapack_getrs.cpp
 - /root/rocSOLVER/library/src/lapack/roclapack_getrs.hpp
+- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_laswp.hpp
+- /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
 gen_file_path: *id001
 target_kernel_functions:
 - laswp_kernel

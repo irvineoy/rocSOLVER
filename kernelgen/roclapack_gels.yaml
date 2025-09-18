@@ -1,4 +1,10 @@
 source_file_path: &id001
+- /root/rocSOLVER/library/src/lapack/roclapack_gelq2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_gelqf.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_gels.cpp
+- /root/rocSOLVER/library/src/lapack/roclapack_gels.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_geqr2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_geqrf.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_lacgv.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larf.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larfb.hpp
@@ -9,18 +15,11 @@ source_file_path: &id001
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_ormlq_unmlq.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_ormqr_unmqr.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_gelq2.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_gelqf.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_gels.cpp
-- /root/rocSOLVER/library/src/lapack/roclapack_gels.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_geqr2.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_geqrf.hpp
 gen_file_path: *id001
 target_kernel_functions:
 - addmatA1
 - copymatA1
 - gels_set_zero
-- geqr2_kernel_small
 - larf_left_kernel
 - larf_right_kernel
 - larft_kernel_backward
@@ -28,20 +27,14 @@ target_kernel_functions:
 - larft_restore_tri
 - larft_set_diag
 - larft_set_tri
-- rocsolver_gelq2_template
-- rocsolver_gelqf_template
 - rocsolver_gels_impl
 - rocsolver_gels_template
-- rocsolver_geqr2_template
-- rocsolver_geqrf_template
 - rocsolver_larfb_inverse_template
 - rocsolver_larfb_template
 - rocsolver_larft_inverse_template
 - rocsolver_larft_template
 - rocsolver_orm2r_unm2r_template
 - rocsolver_orml2_unml2_template
-- rocsolver_ormlq_unmlq_template
-- rocsolver_ormqr_unmqr_template
 - set_taubeta
 - set_triangular
 compile_command:

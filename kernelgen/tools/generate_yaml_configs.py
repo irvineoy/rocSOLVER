@@ -8,7 +8,10 @@ import os
 import re
 import yaml
 from pathlib import Path
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Tuple
+
+# Maximum source files to prevent LLM context overload
+MAX_SOURCE_FILES = 35
 
 # Blacklist of generic kernels that won't help with performance optimization
 # These are too generic and appear in almost all functions
@@ -67,6 +70,196 @@ GENERIC_KERNEL_BLACKLIST = {
     # - Function-specific kernels with prefixes like stedc_*, bdsqr_*, getf2_*, etc.
     # - set_tridiag, set_triangular (specific to algorithms, not generic setters)
 }
+
+# Algorithm categorization for cross-contamination detection
+ALGORITHM_CATEGORIES = {
+    'eigenvalue': ['syev', 'heev', 'syevd', 'heevd', 'syevx', 'heevx', 'sytrd', 'hetrd',
+                   'sytd2', 'hetd2', 'orgtr', 'ungtr', 'ormtr', 'unmtr', 'sterf', 'stedc', 'steqr'],
+    'svd': ['gesvd', 'gesvdx', 'gesdd', 'gebrd', 'gebd2', 'orgbr', 'ungbr', 'ormbr', 'unmbr',
+            'bdsqr', 'bdsvdx'],
+    'qr_decomp': ['geqrf', 'geqr2', 'orgqr', 'ungqr', 'ormqr', 'unmqr'],
+    'lq_decomp': ['gelqf', 'gelq2', 'orglq', 'unglq', 'ormlq', 'unmlq'],
+    'lu_decomp': ['getrf', 'getf2', 'getri', 'getrs'],
+    'cholesky': ['potrf', 'potf2', 'potri', 'potrs', 'pstrf', 'pstf2'],
+    'generalized_eigen': ['sygv', 'hegv', 'sygvd', 'hegvd', 'sygvx', 'hegvx', 'sygs2', 'hegs2',
+                         'sygst', 'hegst'],
+    'triangular': ['trtri', 'trsm', 'trmm'],
+    'auxiliary': ['lacgv', 'larf', 'larfb', 'larfg', 'larft', 'lasr', 'latrd', 'labrd'],
+    'solvers': ['gesv', 'gels'],
+    'banded': ['geblttrf', 'geblttrs']
+}
+
+# File importance levels for prioritization
+FILE_IMPORTANCE_LEVELS = {
+    'core_algorithm': {
+        'patterns': [r'roclapack_\w+\.cpp$', r'roclapack_\w+\.hpp$'],
+        'priority': 1
+    },
+    'auxiliary_algorithm': {
+        'patterns': [r'rocauxiliary_\w+\.hpp$'],
+        'priority': 2
+    },
+    'specialized_kernels': {
+        'patterns': [r'specialized/.*\.hpp$'],
+        'priority': 3
+    },
+    'common_utilities': {
+        'patterns': [r'lib_\w+\.hpp$', r'libcommon\.hpp$'],
+        'priority': 4
+    },
+    'infrastructure': {
+        'patterns': [r'ideal_sizes\.hpp$', r'rocsolver_logger\.hpp$', r'rocsolver_logvalue\.hpp$'],
+        'priority': 5
+    },
+    'device_helpers': {
+        'patterns': [r'device_functions\.hpp$', r'device_helpers\.hpp$'],
+        'priority': 6
+    }
+}
+
+def detect_algorithm_category(function_name: str) -> str:
+    """
+    Detect the algorithm category of a function based on its name.
+    Returns the category or 'unknown' if no match found.
+    """
+    function_name = function_name.lower()
+
+    for category, patterns in ALGORITHM_CATEGORIES.items():
+        for pattern in patterns:
+            if pattern in function_name:
+                return category
+
+    return 'unknown'
+
+def is_cross_algorithm_contamination(current_function: str, dependency_function: str) -> bool:
+    """
+    Detect if a dependency function belongs to a different algorithm category
+    than the current function, indicating potential cross-contamination.
+
+    Args:
+        current_function: The main function being analyzed
+        dependency_function: A function found in dependencies
+
+    Returns:
+        True if cross-contamination is detected, False otherwise
+    """
+    current_category = detect_algorithm_category(current_function)
+    dependency_category = detect_algorithm_category(dependency_function)
+
+    # Allow unknown or auxiliary functions
+    if current_category == 'unknown' or dependency_category == 'unknown':
+        return False
+
+    # Allow auxiliary functions in any algorithm
+    if dependency_category == 'auxiliary':
+        return False
+
+    # Cross-contamination if different non-auxiliary categories
+    return current_category != dependency_category
+
+def filter_kernels_by_algorithm_relevance(kernels: List[str], target_function: str) -> List[str]:
+    """
+    Filter kernel functions to only include those relevant to the target algorithm.
+    Removes kernels from different algorithm categories to prevent cross-contamination.
+
+    Args:
+        kernels: List of kernel function names
+        target_function: The main function being analyzed
+
+    Returns:
+        Filtered list of relevant kernels
+    """
+    target_category = detect_algorithm_category(target_function)
+    filtered_kernels = []
+
+    for kernel in kernels:
+        # Skip kernels that are in blacklist
+        if kernel in GENERIC_KERNEL_BLACKLIST:
+            continue
+
+        # Check for cross-contamination
+        if not is_cross_algorithm_contamination(target_function, kernel):
+            filtered_kernels.append(kernel)
+        else:
+            # Log removal for debugging
+            kernel_category = detect_algorithm_category(kernel)
+            print(f"    Removing cross-contaminated kernel: {kernel} ({kernel_category}) from {target_function} ({target_category})")
+
+    return filtered_kernels
+
+def prioritize_source_files(file_paths: List[str], target_kernels: List[str]) -> Tuple[List[str], Dict[str, int]]:
+    """
+    Prioritize source files based on their importance and relevance to target kernels.
+    Returns essential files first, then supporting files based on priority levels.
+
+    Args:
+        file_paths: List of source file paths
+        target_kernels: List of target kernel functions
+
+    Returns:
+        Tuple of (prioritized_files, file_priorities)
+    """
+    file_priorities = {}
+    essential_files = []
+    supporting_files = []
+
+    for file_path in file_paths:
+        # Normalize path for consistent processing
+        normalized_path = normalize_path(file_path)
+
+        # Determine file importance level
+        priority = 10  # Default low priority
+
+        for _, level_info in FILE_IMPORTANCE_LEVELS.items():
+            for pattern in level_info['patterns']:
+                if re.search(pattern, normalized_path):
+                    priority = level_info['priority']
+                    break
+            if priority != 10:
+                break
+
+        file_priorities[normalized_path] = priority
+
+        # Check if file contains target kernels (essential) or is high priority
+        is_essential = False
+        if target_kernels and priority <= 3:  # Core, auxiliary, or specialized files
+            try:
+                if os.path.exists(normalized_path):
+                    with open(normalized_path, 'r') as f:
+                        content = f.read()
+
+                    # Check if any target kernel is defined in this file
+                    for kernel in target_kernels:
+                        # Look for function definitions, not just mentions
+                        patterns = [
+                            rf'\b{re.escape(kernel)}\s*\(',
+                            rf'ROCSOLVER_KERNEL\s+.*\b{re.escape(kernel)}\s*\(',
+                            rf'__global__\s+.*\b{re.escape(kernel)}\s*\('
+                        ]
+                        for pattern in patterns:
+                            if re.search(pattern, content):
+                                is_essential = True
+                                break
+                        if is_essential:
+                            break
+            except Exception as e:
+                print(f"    Warning: Could not analyze file {normalized_path}: {e}")
+
+        if is_essential or priority <= 2:  # Essential or core algorithm files
+            essential_files.append((normalized_path, priority))
+        else:
+            supporting_files.append((normalized_path, priority))
+
+    # Sort essential files by priority (lower number = higher priority)
+    essential_files.sort(key=lambda x: x[1])
+    supporting_files.sort(key=lambda x: x[1])
+
+    # Combine: essential files first, then supporting files
+    prioritized_files = [f[0] for f in essential_files] + [f[0] for f in supporting_files]
+
+    print(f"    Essential files: {len(essential_files)}, Supporting files: {len(supporting_files)}")
+
+    return prioritized_files, file_priorities
 
 def get_base_function_names(lapack_dir: str) -> Dict[str, List[str]]:
     """
@@ -363,7 +556,26 @@ def generate_yaml_config(base_name: str, files: List[str], existing_yaml_path: s
     
     # Find kernel functions in all source files including dependencies
     # We search in all_source_files to include GPU kernels from dependencies
-    target_functions = find_kernel_functions(all_source_files)
+    all_kernels = find_kernel_functions(all_source_files)
+
+    # Apply intelligent filtering
+    print(f"  Found {len(all_kernels)} total kernels before filtering")
+
+    # Filter kernels by algorithm relevance to prevent cross-contamination
+    target_functions = filter_kernels_by_algorithm_relevance(all_kernels, base_name)
+    print(f"  Filtered to {len(target_functions)} relevant kernels")
+
+    # Prioritize source files based on importance and kernel relevance
+    prioritized_source_files, _ = prioritize_source_files(all_source_files, target_functions)
+
+    # Use prioritized files for source_file_path
+    all_source_files = prioritized_source_files
+
+    # Limit source files for LLM context optimization
+    if len(all_source_files) > MAX_SOURCE_FILES:
+        print(f"  Limiting source files from {len(all_source_files)} to {MAX_SOURCE_FILES} for LLM optimization")
+        # Keep essential files and top priority supporting files
+        all_source_files = all_source_files[:MAX_SOURCE_FILES]
     
     # If existing config exists, preserve commands and only update paths/functions
     if existing_config:

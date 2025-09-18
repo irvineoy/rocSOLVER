@@ -1,15 +1,14 @@
 source_file_path: &id001
-- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_laswp.hpp
-- /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
 - /root/rocSOLVER/library/src/lapack/roclapack_geblttrs_npvt.cpp
 - /root/rocSOLVER/library/src/lapack/roclapack_geblttrs_npvt.hpp
 - /root/rocSOLVER/library/src/lapack/roclapack_getrs.hpp
+- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_laswp.hpp
+- /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
 gen_file_path: *id001
 target_kernel_functions:
 - laswp_kernel
 - rocsolver_geblttrs_npvt_impl
 - rocsolver_geblttrs_npvt_template
-- rocsolver_getrs_template
 - rocsolver_laswp_template
 compile_command:
 - ./install.sh --architecture gfx942 --clients --relwithdebinfo

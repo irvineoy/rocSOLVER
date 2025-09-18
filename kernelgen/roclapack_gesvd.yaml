@@ -1,4 +1,12 @@
 source_file_path: &id001
+- /root/rocSOLVER/library/src/lapack/roclapack_gebd2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_gebrd.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_gelq2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_gelqf.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_geqr2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_geqrf.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_gesvd.cpp
+- /root/rocSOLVER/library/src/lapack/roclapack_gesvd.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_bdsqr.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_bdsqr_hybrid.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_labrd.hpp
@@ -18,25 +26,14 @@ source_file_path: &id001
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_orml2_unml2.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_ormlq_unmlq.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_ormqr_unmqr.hpp
-- /root/rocSOLVER/library/src/include/ideal_sizes.hpp
-- /root/rocSOLVER/library/src/include/lapack_device_functions.hpp
-- /root/rocSOLVER/library/src/include/lapack_host_functions.hpp
 - /root/rocSOLVER/library/src/include/lib_device_helpers.hpp
 - /root/rocSOLVER/library/src/include/lib_host_helpers.hpp
 - /root/rocSOLVER/library/src/include/lib_macros.hpp
 - /root/rocSOLVER/library/src/include/libcommon.hpp
-- /root/rocSOLVER/library/src/include/rocsolver_hybrid_storage.hpp
+- /root/rocSOLVER/library/src/include/ideal_sizes.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_logger.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_logvalue.hpp
-- /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_gebd2.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_gebrd.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_gelq2.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_gelqf.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_geqr2.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_geqrf.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_gesvd.cpp
-- /root/rocSOLVER/library/src/lapack/roclapack_gesvd.hpp
+- /root/rocSOLVER/library/src/include/lapack_device_functions.hpp
 gen_file_path: *id001
 target_kernel_functions:
 - addmatA1
@@ -48,7 +45,6 @@ target_kernel_functions:
 - bdsqr_rotate
 - bdsqr_update_endpoints
 - copymatA1
-- geqr2_kernel_small
 - larf_left_kernel
 - larf_right_kernel
 - larft_kernel_backward
@@ -63,10 +59,6 @@ target_kernel_functions:
 - rocsolver_bdsqr_template
 - rocsolver_gebd2_template
 - rocsolver_gebrd_template
-- rocsolver_gelq2_template
-- rocsolver_gelqf_template
-- rocsolver_geqr2_template
-- rocsolver_geqrf_template
 - rocsolver_gesvd_impl
 - rocsolver_gesvd_template
 - rocsolver_labrd_template
@@ -78,13 +70,9 @@ target_kernel_functions:
 - rocsolver_org2r_ung2r_template
 - rocsolver_orgbr_ungbr_template
 - rocsolver_orgl2_ungl2_template
-- rocsolver_orglq_unglq_template
-- rocsolver_orgqr_ungqr_template
 - rocsolver_orm2r_unm2r_template
 - rocsolver_ormbr_unmbr_template
 - rocsolver_orml2_unml2_template
-- rocsolver_ormlq_unmlq_template
-- rocsolver_ormqr_unmqr_template
 - set_taubeta
 - set_triangular
 compile_command:

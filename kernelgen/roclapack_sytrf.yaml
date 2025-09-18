@@ -1,17 +1,17 @@
 source_file_path: &id001
+- /root/rocSOLVER/library/src/lapack/roclapack_sytf2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sytrf.cpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sytrf.hpp
 - /root/rocSOLVER/library/src/auxiliary/rocauxiliary_lasyf.hpp
-- /root/rocSOLVER/library/src/include/ideal_sizes.hpp
-- /root/rocSOLVER/library/src/include/lapack_device_functions.hpp
 - /root/rocSOLVER/library/src/include/lib_device_helpers.hpp
 - /root/rocSOLVER/library/src/include/lib_host_helpers.hpp
 - /root/rocSOLVER/library/src/include/lib_macros.hpp
 - /root/rocSOLVER/library/src/include/libcommon.hpp
+- /root/rocSOLVER/library/src/include/ideal_sizes.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_logger.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_logvalue.hpp
+- /root/rocSOLVER/library/src/include/lapack_device_functions.hpp
 - /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_sytf2.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_sytrf.cpp
-- /root/rocSOLVER/library/src/lapack/roclapack_sytrf.hpp
 gen_file_path: *id001
 target_kernel_functions:
 - lasyf_kernel_lower
