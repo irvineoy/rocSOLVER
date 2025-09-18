@@ -14,9 +14,6 @@ source_file_path: &id001
 - /root/rocSOLVER/library/src/lapack/roclapack_sygst_hegst.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- conj_in_place
-- copy_trans_mat
-- rocsolver_lacgv_template
 - rocsolver_sygs2_hegs2_template
 - rocsolver_sygst_hegst_impl
 - rocsolver_sygst_hegst_template

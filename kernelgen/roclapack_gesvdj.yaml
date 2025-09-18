@@ -38,8 +38,6 @@ source_file_path: &id001
 gen_file_path: *id001
 target_kernel_functions:
 - addmatA1
-- conj_in_place
-- copy_trans_mat
 - copymatA1
 - geqr2_kernel_small
 - gesvdj_finalize
@@ -74,11 +72,8 @@ target_kernel_functions:
 - rocsolver_geqrf_template
 - rocsolver_gesvdj_impl
 - rocsolver_gesvdj_template
-- rocsolver_lacgv_template
-- rocsolver_larf_template
 - rocsolver_larfb_inverse_template
 - rocsolver_larfb_template
-- rocsolver_larfg_template
 - rocsolver_larft_inverse_template
 - rocsolver_larft_template
 - rocsolver_lasr_template
@@ -98,7 +93,6 @@ target_kernel_functions:
 - rocsolver_sytd2_hetd2_template
 - rocsolver_sytrd_hetrd_template
 - scalar_case
-- set_tau
 - set_taubeta
 - set_triangular
 - set_tridiag

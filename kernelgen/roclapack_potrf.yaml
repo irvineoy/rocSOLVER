@@ -7,8 +7,6 @@ source_file_path: &id001
 gen_file_path: *id001
 target_kernel_functions:
 - chk_positive
-- conj_in_place
-- rocsolver_lacgv_template
 - rocsolver_potf2_template
 - rocsolver_potrf_impl
 - rocsolver_potrf_template

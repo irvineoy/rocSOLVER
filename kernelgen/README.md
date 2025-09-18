@@ -57,3 +57,65 @@ Each `.yaml` file defines a complete optimization task. Here is a breakdown of t
 
 
 ## Version: V1
+
+
+
+ ⚠️ Major Issues Found
+
+  1. Over-Broad Dependency Resolution
+
+  Problem: Complex functions like GESDD, GESVDX are pulling in unrelated eigenvalue kernels
+  - GESDD (SVD) has 95 kernels including 21 eigenvalue kernels (stedc_*, syevj_*)
+  - This happens because recursive dependency search includes too many headers
+
+  2. Additional Generic Kernels Need Blacklisting
+
+  Problem: Many very generic kernels still appear in most files:
+  - conj_in_place (34 files) - conjugation helper
+  - rocsolver_lacgv_template (34 files) - vector conjugation
+  - copy_trans_mat (27 files) - matrix transpose copy
+  - larf_left_kernel/larf_right_kernel (27 files) - generic Householder reflectors
+  - set_taubeta, set_tau (29/23 files) - generic tau setters
+
+  📋 Recommendations for Improvement
+
+  High Priority Fixes:
+
+  1. Expand Blacklist - Add these generic kernels:
+  # Add to GENERIC_KERNEL_BLACKLIST:
+  'conj_in_place',       # Conjugation helper
+  'copy_trans_mat',      # Transpose copy (too generic)
+  'larf_left_kernel',    # Generic Householder left
+  'larf_right_kernel',   # Generic Householder right  
+  'set_tau',             # Generic tau setter
+  'set_taubeta',         # Generic tau/beta setter
+  'rocsolver_lacgv_template',  # Vector conjugation template
+  'rocsolver_larf_template',   # Generic LARF template
+  'rocsolver_larfg_template',  # Generic Householder generator
+
+  2. Improve Dependency Filtering - Modify script to:
+    - Stop recursive dependency search at certain function boundaries
+    - Don't include eigenvalue headers for pure SVD/factorization functions
+    - Add function-category awareness to dependency resolution
+  3. Function-Specific Kernel Filtering - Keep only kernels relevant to the main operation:
+    - SVD functions: Keep bdsqr_*, exclude stedc_*/syevj_*
+    - Factorization: Keep getf2_*, potf2_*, exclude eigenvalue kernels
+    - Eigenvalue: Keep stedc_*, syevj_*, exclude SVD kernels
+
+  Medium Priority Improvements:
+
+  4. Source File Optimization - Some overly common includes:
+    - rocsolver_run_specialized_kernels.hpp appears in all 46 files (might be too broad)
+    - Consider if some auxiliary headers are needed for all functions
+  5. Performance Command Optimization - Standardize matrix sizes:
+    - Most use -n 4096 or -m 4096 -n 4096
+    - Some use --lda 3000 while others don't specify
+    - Consider consistent parameters for fair comparisons
+
+  🎯 Expected Impact of Fixes
+
+  After implementing the expanded blacklist and dependency filtering:
+  - Kernel count reduction: Functions like GESDD should drop from 95 → ~40-50 kernels
+  - Better LLM context: More focused on performance-critical, function-specific kernels
+  - Reduced noise: Remove generic operations that appear everywhere
+  - Cleaner grouping: Clear separation between SVD, eigenvalue, and factorization kernels

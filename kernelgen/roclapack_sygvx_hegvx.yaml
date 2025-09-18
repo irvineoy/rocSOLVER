@@ -35,8 +35,6 @@ gen_file_path: *id001
 target_kernel_functions:
 - addmatA1
 - chk_positive
-- conj_in_place
-- copy_trans_mat
 - copymatA1
 - larf_left_kernel
 - larf_right_kernel
@@ -59,11 +57,8 @@ target_kernel_functions:
 - latrd_upper_computeW_symv_kernel
 - latrd_upper_updateA_kernel
 - latrd_upper_updateW_kernel
-- rocsolver_lacgv_template
-- rocsolver_larf_template
 - rocsolver_larfb_inverse_template
 - rocsolver_larfb_template
-- rocsolver_larfg_template
 - rocsolver_larft_inverse_template
 - rocsolver_larft_template
 - rocsolver_latrd_forsytrd_template
@@ -85,7 +80,6 @@ target_kernel_functions:
 - rocsolver_sygvx_hegvx_template
 - rocsolver_sytd2_hetd2_template
 - rocsolver_sytrd_hetrd_template
-- set_tau
 - set_taubeta
 - set_triangular
 - set_tridiag

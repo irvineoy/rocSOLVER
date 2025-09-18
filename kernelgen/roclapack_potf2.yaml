@@ -5,8 +5,6 @@ source_file_path: &id001
 - /root/rocSOLVER/library/src/lapack/roclapack_potf2.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- conj_in_place
-- rocsolver_lacgv_template
 - rocsolver_potf2_impl
 - rocsolver_potf2_template
 - sqrtDiagOnward

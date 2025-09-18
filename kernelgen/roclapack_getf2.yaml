@@ -13,7 +13,6 @@ source_file_path: &id001
 - /root/rocSOLVER/library/src/lapack/roclapack_getf2.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- copy_trans_mat
 - getf2_check_singularity
 - getf2_iamax
 - getf2_npvt_check_singularity

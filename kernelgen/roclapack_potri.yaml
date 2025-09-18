@@ -13,7 +13,6 @@ source_file_path: &id001
 - /root/rocSOLVER/library/src/lapack/roclapack_trtri.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- copy_trans_mat
 - invdiag
 - rocsolver_potri_impl
 - rocsolver_potri_template

@@ -12,7 +12,6 @@ source_file_path: &id001
 - /root/rocSOLVER/library/src/lapack/roclapack_sytf2.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- copy_trans_mat
 - rocsolver_sytf2_impl
 - rocsolver_sytf2_template
 - sytf2_kernel_lower

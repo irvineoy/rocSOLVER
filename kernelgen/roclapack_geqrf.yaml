@@ -11,7 +11,6 @@ source_file_path: &id001
 gen_file_path: *id001
 target_kernel_functions:
 - addmatA1
-- conj_in_place
 - copymatA1
 - geqr2_kernel_small
 - larf_left_kernel
@@ -24,14 +23,10 @@ target_kernel_functions:
 - rocsolver_geqr2_template
 - rocsolver_geqrf_impl
 - rocsolver_geqrf_template
-- rocsolver_lacgv_template
-- rocsolver_larf_template
 - rocsolver_larfb_inverse_template
 - rocsolver_larfb_template
-- rocsolver_larfg_template
 - rocsolver_larft_inverse_template
 - rocsolver_larft_template
-- set_tau
 - set_taubeta
 - set_triangular
 compile_command:

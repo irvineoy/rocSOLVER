@@ -61,8 +61,6 @@ target_kernel_functions:
 - bdsqr_update_endpoints
 - bdsvdx_abs_eigs
 - bdsvdx_reorder_vect
-- conj_in_place
-- copy_trans_mat
 - copymatA1
 - geqr2_kernel_small
 - larf_left_kernel
@@ -102,11 +100,8 @@ target_kernel_functions:
 - rocsolver_gesvdx_impl
 - rocsolver_gesvdx_template
 - rocsolver_labrd_template
-- rocsolver_lacgv_template
-- rocsolver_larf_template
 - rocsolver_larfb_inverse_template
 - rocsolver_larfb_template
-- rocsolver_larfg_template
 - rocsolver_larft_inverse_template
 - rocsolver_larft_template
 - rocsolver_lasr_template
@@ -131,7 +126,6 @@ target_kernel_functions:
 - rocsolver_syevx_heevx_template
 - rocsolver_sytd2_hetd2_template
 - rocsolver_sytrd_hetrd_template
-- set_tau
 - set_taubeta
 - set_triangular
 - set_tridiag

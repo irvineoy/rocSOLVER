@@ -47,8 +47,6 @@ target_kernel_functions:
 - bdsqr_lower2upper
 - bdsqr_rotate
 - bdsqr_update_endpoints
-- conj_in_place
-- copy_trans_mat
 - copymatA1
 - geqr2_kernel_small
 - larf_left_kernel
@@ -72,11 +70,8 @@ target_kernel_functions:
 - rocsolver_gesvd_impl
 - rocsolver_gesvd_template
 - rocsolver_labrd_template
-- rocsolver_lacgv_template
-- rocsolver_larf_template
 - rocsolver_larfb_inverse_template
 - rocsolver_larfb_template
-- rocsolver_larfg_template
 - rocsolver_larft_inverse_template
 - rocsolver_larft_template
 - rocsolver_lasr_template
@@ -90,7 +85,6 @@ target_kernel_functions:
 - rocsolver_orml2_unml2_template
 - rocsolver_ormlq_unmlq_template
 - rocsolver_ormqr_unmqr_template
-- set_tau
 - set_taubeta
 - set_triangular
 compile_command:

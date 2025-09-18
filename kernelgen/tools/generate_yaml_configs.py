@@ -51,11 +51,21 @@ GENERIC_KERNEL_BLACKLIST = {
     'restau',  # Tau restoration
     'subtract_tau',  # Tau subtraction
 
-    # Note: We keep function-specific variants like:
-    # - copy_trans_mat (might be important for transpose operations)
-    # - set_tridiag (specific to tridiagonalization)
-    # - set_triangular (specific to triangular operations)
+    # Additional kernels identified as too generic (Code analysis results):
+    'conj_in_place',  # Trivial element-wise conjugation - no optimization potential
+    'copy_trans_mat',  # Basic matrix copy/transpose - very generic utility
+    'set_tau',  # Trivial negation: tp[i] = -tp[i] - no optimization potential
+
+    # Generic host-side template functions (orchestrators, not GPU kernels)
+    'rocsolver_lacgv_template',  # Host function orchestrating conjugation
+    'rocsolver_larf_template',   # Host function orchestrating LARF operations
+    'rocsolver_larfg_template',  # Host function orchestrating LARFG operations
+
+    # Note: We keep performance-critical kernels like:
+    # - larf_left_kernel/larf_right_kernel (complex GEMV+GER with shared memory)
+    # - set_taubeta/run_set_taubeta (numerical algorithms with optimization potential)
     # - Function-specific kernels with prefixes like stedc_*, bdsqr_*, getf2_*, etc.
+    # - set_tridiag, set_triangular (specific to algorithms, not generic setters)
 }
 
 def get_base_function_names(lapack_dir: str) -> Dict[str, List[str]]:

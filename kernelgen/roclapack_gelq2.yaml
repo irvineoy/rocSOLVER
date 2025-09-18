@@ -7,14 +7,10 @@ source_file_path: &id001
 - /root/rocSOLVER/library/src/lapack/roclapack_gelq2.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- conj_in_place
 - larf_left_kernel
 - larf_right_kernel
 - rocsolver_gelq2_impl
 - rocsolver_gelq2_template
-- rocsolver_lacgv_template
-- rocsolver_larf_template
-- rocsolver_larfg_template
 - set_taubeta
 compile_command:
 - ./install.sh --architecture gfx942 --clients --relwithdebinfo

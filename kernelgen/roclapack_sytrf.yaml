@@ -14,7 +14,6 @@ source_file_path: &id001
 - /root/rocSOLVER/library/src/lapack/roclapack_sytrf.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- copy_trans_mat
 - lasyf_kernel_lower
 - lasyf_kernel_upper
 - rocsolver_lasyf_template
