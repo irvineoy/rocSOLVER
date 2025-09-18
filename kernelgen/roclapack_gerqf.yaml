@@ -1,16 +1,38 @@
 source_file_path: &id001
-- library/src/auxiliary/rocauxiliary_larfb.hpp
-- library/src/auxiliary/rocauxiliary_larft.hpp
-- library/src/lapack/roclapack_gerq2.hpp
-- library/src/lapack/roclapack_gerqf.cpp
-- library/src/lapack/roclapack_gerqf.hpp
+- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_lacgv.hpp
+- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larf.hpp
+- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larfb.hpp
+- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larfg.hpp
+- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larft.hpp
+- /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_gerq2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_gerqf.cpp
+- /root/rocSOLVER/library/src/lapack/roclapack_gerqf.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- rocsolver_larfb_template
-- rocsolver_gerqf_impl
+- addmatA1
+- conj_in_place
+- copymatA1
+- larf_left_kernel
+- larf_right_kernel
+- larft_kernel_backward
+- larft_kernel_forward
+- larft_restore_tri
+- larft_set_diag
+- larft_set_tri
 - rocsolver_gerq2_template
-- rocsolver_larft_template
+- rocsolver_gerqf_impl
 - rocsolver_gerqf_template
+- rocsolver_lacgv_template
+- rocsolver_larf_template
+- rocsolver_larfb_inverse_template
+- rocsolver_larfb_template
+- rocsolver_larfg_template
+- rocsolver_larft_inverse_template
+- rocsolver_larft_template
+- set_tau
+- set_taubeta
+- set_triangular
 compile_command:
 - ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:

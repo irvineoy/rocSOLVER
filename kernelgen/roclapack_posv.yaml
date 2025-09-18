@@ -1,14 +1,22 @@
 source_file_path: &id001
-- library/src/lapack/roclapack_posv.cpp
-- library/src/lapack/roclapack_posv.hpp
-- library/src/lapack/roclapack_potrf.hpp
-- library/src/lapack/roclapack_potrs.hpp
+- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_lacgv.hpp
+- /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_posv.cpp
+- /root/rocSOLVER/library/src/lapack/roclapack_posv.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_potf2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_potrf.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_potrs.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- rocsolver_potrf_template
-- rocsolver_posv_template
+- chk_positive
+- conj_in_place
+- rocsolver_lacgv_template
 - rocsolver_posv_impl
+- rocsolver_posv_template
+- rocsolver_potf2_template
+- rocsolver_potrf_template
 - rocsolver_potrs_template
+- sqrtDiagOnward
 compile_command:
 - ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:

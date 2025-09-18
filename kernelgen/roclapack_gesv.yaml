@@ -1,14 +1,34 @@
 source_file_path: &id001
-- library/src/lapack/roclapack_gesv.cpp
-- library/src/lapack/roclapack_gesv.hpp
-- library/src/lapack/roclapack_getrf.hpp
-- library/src/lapack/roclapack_getrs.hpp
+- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_laswp.hpp
+- /root/rocSOLVER/library/src/include/ideal_sizes.hpp
+- /root/rocSOLVER/library/src/include/lapack_device_functions.hpp
+- /root/rocSOLVER/library/src/include/lib_device_helpers.hpp
+- /root/rocSOLVER/library/src/include/lib_host_helpers.hpp
+- /root/rocSOLVER/library/src/include/lib_macros.hpp
+- /root/rocSOLVER/library/src/include/libcommon.hpp
+- /root/rocSOLVER/library/src/include/rocsolver_logger.hpp
+- /root/rocSOLVER/library/src/include/rocsolver_logvalue.hpp
+- /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_gesv.cpp
+- /root/rocSOLVER/library/src/lapack/roclapack_gesv.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_getf2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_getrf.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_getrs.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- rocsolver_getrf_template
+- copy_trans_mat
+- getf2_check_singularity
+- getf2_iamax
+- getf2_npvt_check_singularity
+- getf2_permut_init
+- getrf_row_permutate
+- laswp_kernel
 - rocsolver_gesv_impl
-- rocsolver_getrs_template
 - rocsolver_gesv_template
+- rocsolver_getf2_template
+- rocsolver_getrf_template
+- rocsolver_getrs_template
+- rocsolver_laswp_template
 compile_command:
 - ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:

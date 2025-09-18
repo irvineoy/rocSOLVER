@@ -1,12 +1,30 @@
 source_file_path: &id001
-- library/src/include/../auxiliary/rocauxiliary_lasyf.hpp
-- library/src/lapack/roclapack_sytf2.hpp
-- library/src/lapack/roclapack_sytrf.cpp
-- library/src/lapack/roclapack_sytrf.hpp
+- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_lasyf.hpp
+- /root/rocSOLVER/library/src/include/ideal_sizes.hpp
+- /root/rocSOLVER/library/src/include/lapack_device_functions.hpp
+- /root/rocSOLVER/library/src/include/lib_device_helpers.hpp
+- /root/rocSOLVER/library/src/include/lib_host_helpers.hpp
+- /root/rocSOLVER/library/src/include/lib_macros.hpp
+- /root/rocSOLVER/library/src/include/libcommon.hpp
+- /root/rocSOLVER/library/src/include/rocsolver_logger.hpp
+- /root/rocSOLVER/library/src/include/rocsolver_logvalue.hpp
+- /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sytf2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sytrf.cpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sytrf.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- rocsolver_sytrf_template
+- copy_trans_mat
+- lasyf_kernel_lower
+- lasyf_kernel_upper
+- rocsolver_lasyf_template
+- rocsolver_sytf2_template
 - rocsolver_sytrf_impl
+- rocsolver_sytrf_template
+- sytf2_kernel_lower
+- sytf2_kernel_upper
+- sytrf_kernel_lower
+- sytrf_kernel_upper
 compile_command:
 - ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:

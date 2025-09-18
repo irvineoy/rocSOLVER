@@ -1,14 +1,40 @@
 source_file_path: &id001
-- library/src/auxiliary/rocauxiliary_latrd.hpp
-- library/src/lapack/roclapack_sytd2_hetd2.hpp
-- library/src/lapack/roclapack_sytrd_hetrd.cpp
-- library/src/lapack/roclapack_sytrd_hetrd.hpp
+- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_lacgv.hpp
+- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larfg.hpp
+- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_latrd.hpp
+- /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sytd2_hetd2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sytrd_hetrd.cpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sytrd_hetrd.hpp
 gen_file_path: *id001
 target_kernel_functions:
+- conj_in_place
+- latrd_dot_scale_axpy
+- latrd_lower_computeW_gemv_kernel
+- latrd_lower_computeW_gemvt_kernel
+- latrd_lower_computeW_kernel
+- latrd_lower_computeW_symv_kernel
+- latrd_lower_updateA_kernel
+- latrd_lower_updateW_kernel
+- latrd_reduce_kernel
+- latrd_upper_computeW_gemv_kernel
+- latrd_upper_computeW_gemvt_kernel
+- latrd_upper_computeW_kernel
+- latrd_upper_computeW_symv_kernel
+- latrd_upper_updateA_kernel
+- latrd_upper_updateW_kernel
+- rocsolver_lacgv_template
+- rocsolver_larfg_template
+- rocsolver_latrd_forsytrd_template
+- rocsolver_latrd_template
+- rocsolver_sytd2_hetd2_template
 - rocsolver_sytrd_hetrd_impl
 - rocsolver_sytrd_hetrd_template
-- rocsolver_latrd_forsytrd_template
-- rocsolver_sytd2_hetd2_template
+- set_tau
+- set_taubeta
+- set_tridiag
+- sytd2_lower_kernel_small
+- sytd2_upper_kernel_small
 compile_command:
 - ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:

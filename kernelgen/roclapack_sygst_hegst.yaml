@@ -1,13 +1,28 @@
 source_file_path: &id001
-- library/src/include/rocsolver_run_specialized_kernels.hpp
-- library/src/lapack/roclapack_sygs2_hegs2.hpp
-- library/src/lapack/roclapack_sygst_hegst.cpp
-- library/src/lapack/roclapack_sygst_hegst.hpp
+- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_lacgv.hpp
+- /root/rocSOLVER/library/src/include/ideal_sizes.hpp
+- /root/rocSOLVER/library/src/include/lapack_device_functions.hpp
+- /root/rocSOLVER/library/src/include/lib_device_helpers.hpp
+- /root/rocSOLVER/library/src/include/lib_host_helpers.hpp
+- /root/rocSOLVER/library/src/include/lib_macros.hpp
+- /root/rocSOLVER/library/src/include/libcommon.hpp
+- /root/rocSOLVER/library/src/include/rocsolver_logger.hpp
+- /root/rocSOLVER/library/src/include/rocsolver_logvalue.hpp
+- /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sygs2_hegs2.hpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sygst_hegst.cpp
+- /root/rocSOLVER/library/src/lapack/roclapack_sygst_hegst.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- rocsolver_sygst_hegst_template
+- conj_in_place
+- copy_trans_mat
+- rocsolver_lacgv_template
 - rocsolver_sygs2_hegs2_template
 - rocsolver_sygst_hegst_impl
+- rocsolver_sygst_hegst_template
+- sygs2_set_diag1
+- sygs2_set_diag2
+- sygs2_set_diag3
 compile_command:
 - ./install.sh --architecture gfx942 --clients --relwithdebinfo
 correctness_command:
