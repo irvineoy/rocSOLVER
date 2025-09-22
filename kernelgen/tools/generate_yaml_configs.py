@@ -298,14 +298,25 @@ def get_base_function_names(lapack_dir: str) -> Dict[str, List[str]]:
 
 def normalize_path(path: str) -> str:
     """
-    Normalize a path to remove '..' and resolve to canonical form.
+    Normalize a path to remove '..' and resolve to relative form from project root.
     """
-    # Convert to Path object and resolve
+    # Convert to Path object
     path_obj = Path(path)
 
-    # If path exists, resolve it completely
+    # If path exists, resolve it completely first
     if path_obj.exists():
-        return str(path_obj.resolve())
+        resolved_path = path_obj.resolve()
+
+        # Get the current working directory (project root)
+        project_root = Path.cwd()
+
+        # Try to make the path relative to project root
+        try:
+            relative_path = resolved_path.relative_to(project_root)
+            return str(relative_path)
+        except ValueError:
+            # Path is not under project root, return as is but resolved
+            return str(resolved_path)
 
     # Otherwise, normalize it as much as possible
     # This handles cases like "library/src/include/../auxiliary/file.hpp"
@@ -318,7 +329,13 @@ def normalize_path(path: str) -> str:
         elif part and part != '.':
             result.append(part)
 
-    return '/'.join(result)
+    normalized = '/'.join(result)
+
+    # If the path starts with /root/rocSOLVER/, make it relative
+    if normalized.startswith('/root/rocSOLVER/'):
+        normalized = normalized[len('/root/rocSOLVER/'):]
+
+    return normalized
 
 def find_header_dependencies(file_paths: List[str], ignore_patterns: List[str] = None, visited: Set[str] = None) -> Set[str]:
     """

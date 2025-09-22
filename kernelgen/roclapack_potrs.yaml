@@ -1,7 +1,7 @@
 source_file_path: &id001
-- /root/rocSOLVER/library/src/lapack/roclapack_potrs.cpp
-- /root/rocSOLVER/library/src/lapack/roclapack_potrs.hpp
-- /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
+- library/src/lapack/roclapack_potrs.cpp
+- library/src/lapack/roclapack_potrs.hpp
+- library/src/include/rocsolver_run_specialized_kernels.hpp
 gen_file_path: *id001
 target_kernel_functions:
 - rocsolver_potrs_impl

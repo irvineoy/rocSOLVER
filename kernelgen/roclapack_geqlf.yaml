@@ -1,13 +1,13 @@
 source_file_path: &id001
-- /root/rocSOLVER/library/src/lapack/roclapack_geql2.hpp
-- /root/rocSOLVER/library/src/lapack/roclapack_geqlf.cpp
-- /root/rocSOLVER/library/src/lapack/roclapack_geqlf.hpp
-- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_lacgv.hpp
-- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larf.hpp
-- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larfb.hpp
-- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larfg.hpp
-- /root/rocSOLVER/library/src/auxiliary/rocauxiliary_larft.hpp
-- /root/rocSOLVER/library/src/include/rocsolver_run_specialized_kernels.hpp
+- library/src/lapack/roclapack_geql2.hpp
+- library/src/lapack/roclapack_geqlf.cpp
+- library/src/lapack/roclapack_geqlf.hpp
+- library/src/auxiliary/rocauxiliary_lacgv.hpp
+- library/src/auxiliary/rocauxiliary_larf.hpp
+- library/src/auxiliary/rocauxiliary_larfb.hpp
+- library/src/auxiliary/rocauxiliary_larfg.hpp
+- library/src/auxiliary/rocauxiliary_larft.hpp
+- library/src/include/rocsolver_run_specialized_kernels.hpp
 gen_file_path: *id001
 target_kernel_functions:
 - addmatA1
