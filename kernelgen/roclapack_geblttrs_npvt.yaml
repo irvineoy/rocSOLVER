@@ -15,5 +15,5 @@ compile_command:
 correctness_command:
 - build/release-debug/clients/staging/rocsolver-test --gtest_filter="*GEBLTTRS.*:*NPVT.*"
 performance_command:
-- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f geblttrs_npvt -r s --nb 256 --nblocks 16 --nrhs 1 --lda 256 --ldb 256 --ldc 256 --ldx 4096 --iters 1
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -b SQ -b TCP -b TCC -- build/release-debug/clients/staging/rocsolver-bench -f geblttrs_npvt -r s --nb 256 --nblocks 16 --nrhs 1 --lda 256 --ldb 256 --ldc 256 --ldx 1024 --iters 1
 - rocprof-compute analyze --path rocprof_compute_profile -b 2

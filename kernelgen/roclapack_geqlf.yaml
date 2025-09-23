@@ -33,5 +33,5 @@ compile_command:
 correctness_command:
 - build/release-debug/clients/staging/rocsolver-test --gtest_filter="*GEQLF.*"
 performance_command:
-- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f geqlf -r s -m 4096 -n 4096 --lda 4096 --iters 1
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -b SQ -b TCP -b TCC -- build/release-debug/clients/staging/rocsolver-bench -f geqlf -r s -m 1024 -n 1024 --lda 1024 --iters 1
 - rocprof-compute analyze --path rocprof_compute_profile -b 2

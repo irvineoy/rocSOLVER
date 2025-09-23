@@ -1,6 +1,13 @@
 template = f'''
 
-I am currently working on GPU kernel optimization. Please help me write a benchmark command to test FUNCTION_NAME based on the following context.  I will use a GPU profiling tool along with this command to verify GPU performance. Please test single precision with slightly larger matrix dimensions, preferably around 4096. Please use the --iters 3 option to run the benchmark. There is no need to verify results or perform performance analysis. Please provide a command that you deem appropriate as the final output. Your output should only include an executable rocsolver-bench command and nothing else.
+I am currently working on GPU kernel optimization. 
+Please help me write a benchmark command to test FUNCTION_NAME based on the following context.  
+I will use a GPU profiling tool along with this command to verify GPU performance. 
+Please test single precision with slightly larger matrix dimensions, preferably around 1024. 
+Please use the --iters 1 option to run the benchmark. 
+There is no need to verify results or perform performance analysis. 
+Please provide a command that you deem appropriate as the final output. 
+Your output should only include an executable rocsolver-bench command and nothing else.
 
 
 rocsolver-bench context:

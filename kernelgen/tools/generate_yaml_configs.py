@@ -621,7 +621,7 @@ def generate_yaml_config(base_name: str, files: List[str], existing_yaml_path: s
                 f'build/release-debug/clients/staging/rocsolver-test --gtest_filter={test_filter}'
             ],
             'performance_command': [
-                f'rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f {bench_func} -r s -m 3000 -n 3000 --lda 3000 --iters 2',
+                f'rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -b SQ -b TCP -b TCC -- build/release-debug/clients/staging/rocsolver-bench -f {bench_func} -r s -m 3000 -n 3000 --lda 3000 --iters 2',
                 'rocprof-compute analyze --path rocprof_compute_profile -b 2'
             ]
         }
