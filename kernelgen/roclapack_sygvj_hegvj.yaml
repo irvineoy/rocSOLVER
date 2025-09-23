@@ -91,5 +91,5 @@ compile_command:
 correctness_command:
 - build/release-debug/clients/staging/rocsolver-test --gtest_filter="*SYGVJ.*:*HEGVJ.*"
 performance_command:
-- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f sygvj -r s -n 4096 --iters 3
+- rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -- build/release-debug/clients/staging/rocsolver-bench -f sygvj -r s -n 4096 --iters 1
 - rocprof-compute analyze --path rocprof_compute_profile -b 2
