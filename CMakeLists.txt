@@ -48,6 +48,26 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.21.0 AND CMAKE_VERSION VERSION_LESS 3.2
 endif()
 message(STATUS "Using CMake ${CMAKE_VERSION}")
 
+# Enable ccache if available
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+    message(STATUS "Found ccache: ${CCACHE_FOUND}")
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_FOUND}")
+    set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_FOUND}")
+    
+    # Enable ccache for HIP compilation
+    set(CMAKE_HIP_COMPILER_LAUNCHER "${CCACHE_FOUND}")
+    
+    # Also set for hipcc when used as CXX compiler
+    if(CMAKE_CXX_COMPILER MATCHES ".*hipcc.*")
+        message(STATUS "Detected hipcc as CXX compiler - ccache enabled")
+    endif()
+    
+    message(STATUS "ccache enabled for C/C++/HIP compilation")
+else()
+    message(STATUS "ccache not available - compilation will not be cached")
+endif()
+
 project(rocsolver LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 17)

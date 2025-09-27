@@ -26,6 +26,16 @@
  * *************************************************************************/
 
 #include "roclapack_sytd2_hetd2.hpp"
+#include "roclapack_sytd2_hetd2_tiled.hpp"
+#include "roclapack_sytd2_hetd2_graph.hpp"
+#include "roclapack_sytd2_hetd2_revolutionary.hpp"
+#include "roclapack_sytd2_hetd2_ultimate.hpp"
+#include "roclapack_sytd2_hetd2_final.hpp"
+#include "roclapack_sytd2_hetd2_extended.hpp"
+#include "roclapack_sytd2_hetd2_ultra.hpp"
+#include "roclapack_sytd2_hetd2_aggressive.hpp"
+#include "roclapack_sytd2_hetd2_conservative.hpp"
+#include "roclapack_sytd2_hetd2_hyperaggressive.hpp"
 
 ROCSOLVER_BEGIN_NAMESPACE
 
@@ -91,10 +101,83 @@ rocblas_status rocsolver_sytd2_hetd2_impl(rocblas_handle handle,
     if(size_scalars > 0)
         init_scalars(handle, (T*)scalars);
 
-    // execution
-    return rocsolver_sytd2_hetd2_template<T>(handle, uplo, n, A, shiftA, lda, strideA, D, strideD,
-                                             E, strideE, tau, strideP, batch_count, (T*)scalars,
-                                             (T*)work, (T*)norms, (T*)tmptau, (T**)workArr);
+    // execution - use aggressive optimization for maximum performance
+    static bool use_conservative = std::getenv("ROCSOLVER_USE_CONSERVATIVE") != nullptr;
+    static bool use_hyperaggressive = std::getenv("ROCSOLVER_USE_HYPERAGGRESSIVE") != nullptr;
+    static bool use_aggressive = std::getenv("ROCSOLVER_USE_AGGRESSIVE") != nullptr;
+    static bool use_ultra = std::getenv("ROCSOLVER_USE_ULTRA") != nullptr;
+    static bool use_extended = std::getenv("ROCSOLVER_USE_EXTENDED") != nullptr;
+    static bool use_final = std::getenv("ROCSOLVER_USE_FINAL") != nullptr;
+    static bool use_ultimate = std::getenv("ROCSOLVER_USE_ULTIMATE") != nullptr;
+    static bool use_revolutionary = std::getenv("ROCSOLVER_USE_REVOLUTIONARY") != nullptr;
+    static bool use_graph_opt = std::getenv("ROCSOLVER_USE_GRAPH") != nullptr;
+
+    // Use conservative optimization by default for safety
+    if(use_conservative)
+    {
+        return rocsolver_sytd2_hetd2_conservative_impl<T, S, U>(handle, uplo, n, A, shiftA, lda, strideA,
+                                                                D, strideD, E, strideE, tau, strideP,
+                                                                batch_count, (T*)scalars, (T*)work,
+                                                                (T*)norms, (T*)tmptau, (T**)workArr);
+    }
+    else if(use_hyperaggressive)
+    {
+        return rocsolver_sytd2_hetd2_hyperaggressive_impl<T, S, U>(handle, uplo, n, A, shiftA, lda, strideA,
+                                                                    D, strideD, E, strideE, tau, strideP,
+                                                                    batch_count, (T*)scalars, (T*)work,
+                                                                    (T*)norms, (T*)tmptau, (T**)workArr);
+    }
+    else if(use_aggressive)
+    {
+        return rocsolver_sytd2_hetd2_aggressive_impl<T, S, U>(handle, uplo, n, A, shiftA, lda, strideA,
+                                                               D, strideD, E, strideE, tau, strideP,
+                                                               batch_count, (T*)scalars, (T*)work,
+                                                               (T*)norms, (T*)tmptau, (T**)workArr);
+    }
+    else if(use_ultra)
+    {
+        return rocsolver_sytd2_hetd2_ultra_impl<T>(handle, uplo, n, A, shiftA, lda, strideA,
+                                                   D, strideD, E, strideE, tau, strideP,
+                                                   batch_count);
+    }
+    else if(use_extended)
+    {
+        return rocsolver_sytd2_hetd2_extended_impl<T, S, U>(handle, uplo, n, A, shiftA, lda, strideA,
+                                                             D, strideD, E, strideE, tau, strideP,
+                                                             batch_count, (T*)scalars, (T*)work,
+                                                             (T*)norms, (T*)tmptau, (T**)workArr);
+    }
+    else if(use_final && n >= 64)
+    {
+        return rocsolver_sytd2_hetd2_final_impl<T>(handle, uplo, n, A, shiftA, lda, strideA,
+                                                   D, strideD, E, strideE, tau, strideP,
+                                                   batch_count);
+    }
+    else if(use_ultimate && n >= 64)
+    {
+        return rocsolver_sytd2_hetd2_ultimate_impl<T>(handle, uplo, n, A, shiftA, lda, strideA,
+                                                      D, strideD, E, strideE, tau, strideP,
+                                                      batch_count);
+    }
+    else if(use_revolutionary && n >= 256)
+    {
+        return rocsolver_sytd2_hetd2_revolutionary_impl<T>(handle, uplo, n, A, shiftA, lda, strideA,
+                                                           D, strideD, E, strideE, tau, strideP,
+                                                           batch_count);
+    }
+    else if(use_graph_opt && n >= 512)
+    {
+        return rocsolver_sytd2_hetd2_graph_optimized<T>(handle, uplo, n, A, shiftA, lda, strideA,
+                                                        D, strideD, E, strideE, tau, strideP,
+                                                        batch_count, (T*)scalars, (T*)work,
+                                                        (T*)norms, (T*)tmptau, (T**)workArr);
+    }
+    else
+    {
+        return rocsolver_sytd2_hetd2_template<T>(handle, uplo, n, A, shiftA, lda, strideA, D, strideD,
+                                                 E, strideE, tau, strideP, batch_count, (T*)scalars,
+                                                 (T*)work, (T*)norms, (T*)tmptau, (T**)workArr);
+    }
 }
 
 ROCSOLVER_END_NAMESPACE
