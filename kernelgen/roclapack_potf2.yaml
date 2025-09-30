@@ -5,8 +5,10 @@ source_file_path: &id001
 - library/src/include/rocsolver_run_specialized_kernels.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- rocsolver_potf2_impl
-- rocsolver_potf2_template
+- larf_run_small
+- larfg_run_small
+- potf2_run_small
+- rocsolver_ger
 - sqrtDiagOnward
 compile_command:
 - ./install.sh --architecture gfx942 --clients --relwithdebinfo

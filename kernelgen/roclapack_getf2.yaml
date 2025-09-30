@@ -17,8 +17,13 @@ target_kernel_functions:
 - getf2_iamax
 - getf2_npvt_check_singularity
 - getf2_permut_init
+- getf2_run_panel
+- getf2_run_small
+- getri_run_small
+- larf_run_small
+- larfg_run_small
 - laswp_kernel
-- rocsolver_getf2_impl
+- rocsolver_ger
 - rocsolver_getf2_template
 - rocsolver_laswp_template
 compile_command:

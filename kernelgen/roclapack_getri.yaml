@@ -13,10 +13,15 @@ source_file_path: &id001
 - library/src/include/rocsolver_run_specialized_kernels.hpp
 gen_file_path: *id001
 target_kernel_functions:
+- getf2_run_panel
+- getf2_run_small
 - getri_kernel_large1
 - getri_kernel_large2
+- getri_run_small
 - invdiag
-- rocsolver_getri_impl
+- larf_run_small
+- larfg_run_small
+- rocsolver_ger
 - rocsolver_getri_template
 compile_command:
 - ./install.sh --architecture gfx942 --clients --relwithdebinfo

@@ -1,39 +1,34 @@
 source_file_path: &id001
 - library/src/lapack/roclapack_potf2.hpp
 - library/src/lapack/roclapack_potrf.hpp
-- library/src/lapack/roclapack_syevdx_heevdx.hpp
-- library/src/lapack/roclapack_syevx_heevx.hpp
 - library/src/lapack/roclapack_sygs2_hegs2.hpp
 - library/src/lapack/roclapack_sygst_hegst.hpp
-- library/src/lapack/roclapack_sygvdx_hegvdx.cpp
 - library/src/lapack/roclapack_sygvdx_hegvdx.hpp
 - library/src/lapack/roclapack_sygvx_hegvx.hpp
 - library/src/lapack/roclapack_sytd2_hetd2.hpp
-- library/src/lapack/roclapack_sytrd_hetrd.hpp
-- library/src/auxiliary/rocauxiliary_lacgv.hpp
 - library/src/auxiliary/rocauxiliary_larf.hpp
 - library/src/auxiliary/rocauxiliary_larfb.hpp
 - library/src/auxiliary/rocauxiliary_larfg.hpp
 - library/src/auxiliary/rocauxiliary_larft.hpp
 - library/src/auxiliary/rocauxiliary_lasr.hpp
 - library/src/auxiliary/rocauxiliary_latrd.hpp
+- library/src/auxiliary/rocauxiliary_stebz.hpp
+- library/src/auxiliary/rocauxiliary_stein.hpp
+- library/src/include/rocsolver_run_specialized_kernels.hpp
+- library/src/lapack/roclapack_syevdx_heevdx.hpp
+- library/src/lapack/roclapack_syevx_heevx.hpp
+- library/src/lapack/roclapack_sygvdx_hegvdx.cpp
+- library/src/lapack/roclapack_sytrd_hetrd.hpp
+- library/src/auxiliary/rocauxiliary_lacgv.hpp
 - library/src/auxiliary/rocauxiliary_orm2l_unm2l.hpp
 - library/src/auxiliary/rocauxiliary_orm2r_unm2r.hpp
 - library/src/auxiliary/rocauxiliary_ormql_unmql.hpp
 - library/src/auxiliary/rocauxiliary_ormqr_unmqr.hpp
 - library/src/auxiliary/rocauxiliary_ormtr_unmtr.hpp
-- library/src/auxiliary/rocauxiliary_stebz.hpp
 - library/src/auxiliary/rocauxiliary_stedcx.hpp
-- library/src/auxiliary/rocauxiliary_stein.hpp
 - library/src/auxiliary/rocauxiliary_steqr.hpp
 - library/src/auxiliary/rocauxiliary_sterf.hpp
 - library/src/include/lib_device_helpers.hpp
-- library/src/include/lib_host_helpers.hpp
-- library/src/include/lib_macros.hpp
-- library/src/include/libcommon.hpp
-- library/src/include/ideal_sizes.hpp
-- library/src/include/rocsolver_logger.hpp
-- library/src/include/rocsolver_logvalue.hpp
 gen_file_path: *id001
 target_kernel_functions:
 - addmatA1
@@ -41,6 +36,8 @@ target_kernel_functions:
 - copymatA1
 - larf_left_kernel
 - larf_right_kernel
+- larf_run_small
+- larfg_run_small
 - larft_kernel_backward
 - larft_kernel_forward
 - larft_restore_tri
@@ -61,21 +58,13 @@ target_kernel_functions:
 - latrd_upper_computeW_symv_kernel
 - latrd_upper_updateA_kernel
 - latrd_upper_updateW_kernel
+- rocsolver_ger
 - rocsolver_larfb_inverse_template
 - rocsolver_larfb_template
-- rocsolver_larft_inverse_template
-- rocsolver_larft_template
 - rocsolver_lasr_template
-- rocsolver_latrd_template
-- rocsolver_orm2l_unm2l_template
-- rocsolver_orm2r_unm2r_template
-- rocsolver_ormql_unmql_template
-- rocsolver_prng_impl
 - rocsolver_stebz_template
 - rocsolver_stein_template
-- rocsolver_sygs2_hegs2_template
 - rocsolver_sygst_hegst_template
-- rocsolver_sygvdx_hegvdx_impl
 - rocsolver_sygvdx_hegvdx_template
 - rocsolver_sygvx_hegvx_template
 - set_taubeta
@@ -98,4 +87,3 @@ correctness_command:
 performance_command:
 - rocprof-compute profile -n kernelgen --path rocprof_compute_profile --no-roof --join-type kernel -b SQ -b TCP -b TCC -- build/release-debug/clients/staging/rocsolver-bench -f sygvdx -r s -n 1024 --lda 1024 --ldb 1024 --ldz 1024 --itype 1 --evect V --erange A --uplo U --iters 1
 - rocprof-compute analyze --path rocprof_compute_profile -b 2
-

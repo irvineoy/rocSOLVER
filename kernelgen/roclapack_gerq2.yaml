@@ -9,8 +9,9 @@ gen_file_path: *id001
 target_kernel_functions:
 - larf_left_kernel
 - larf_right_kernel
-- rocsolver_gerq2_impl
-- rocsolver_gerq2_template
+- larf_run_small
+- larfg_run_small
+- rocsolver_ger
 - set_taubeta
 compile_command:
 - ./install.sh --architecture gfx942 --clients --relwithdebinfo

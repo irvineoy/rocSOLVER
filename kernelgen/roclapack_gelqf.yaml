@@ -14,18 +14,17 @@ target_kernel_functions:
 - copymatA1
 - larf_left_kernel
 - larf_right_kernel
+- larf_run_small
+- larfg_run_small
 - larft_kernel_backward
 - larft_kernel_forward
 - larft_restore_tri
 - larft_set_diag
 - larft_set_tri
-- rocsolver_gelq2_template
-- rocsolver_gelqf_impl
 - rocsolver_gelqf_template
+- rocsolver_ger
 - rocsolver_larfb_inverse_template
 - rocsolver_larfb_template
-- rocsolver_larft_inverse_template
-- rocsolver_larft_template
 - set_taubeta
 - set_triangular
 compile_command:

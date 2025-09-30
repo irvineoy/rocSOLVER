@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import List, Dict, Set, Tuple
 
 # Maximum source files to prevent LLM context overload
-MAX_SOURCE_FILES = 35
+MAX_SOURCE_FILES = 30
 
 # Blacklist of generic kernels that won't help with performance optimization
 # These are too generic and appear in almost all functions
@@ -73,19 +73,24 @@ GENERIC_KERNEL_BLACKLIST = {
 
 # Algorithm categorization for cross-contamination detection
 ALGORITHM_CATEGORIES = {
-    'eigenvalue': ['syev', 'heev', 'syevd', 'heevd', 'syevx', 'heevx', 'sytrd', 'hetrd',
-                   'sytd2', 'hetd2', 'orgtr', 'ungtr', 'ormtr', 'unmtr', 'sterf', 'stedc', 'steqr'],
-    'svd': ['gesvd', 'gesvdx', 'gesdd', 'gebrd', 'gebd2', 'orgbr', 'ungbr', 'ormbr', 'unmbr',
+    'eigenvalue': ['syev', 'heev', 'syevd', 'heevd', 'syevx', 'heevx', 'syevj', 'heevj',
+                   'sytrd', 'hetrd', 'sytd2', 'hetd2', 'orgtr', 'ungtr', 'ormtr', 'unmtr',
+                   'sterf', 'stedc', 'steqr', 'stedcj'],
+    'svd': ['gesvd', 'gesvdx', 'gesdd', 'gesvdj', 'gebrd', 'gebd2', 'orgbr', 'ungbr', 'ormbr', 'unmbr',
             'bdsqr', 'bdsvdx'],
     'qr_decomp': ['geqrf', 'geqr2', 'orgqr', 'ungqr', 'ormqr', 'unmqr'],
     'lq_decomp': ['gelqf', 'gelq2', 'orglq', 'unglq', 'ormlq', 'unmlq'],
+    'ql_decomp': ['geqlf', 'geql2', 'orgql', 'ungql', 'ormql', 'unmql'],
+    'rq_decomp': ['gerqf', 'gerq2', 'orgrq', 'ungrq', 'ormrq', 'unmrq'],
     'lu_decomp': ['getrf', 'getf2', 'getri', 'getrs'],
-    'cholesky': ['potrf', 'potf2', 'potri', 'potrs', 'pstrf', 'pstf2'],
-    'generalized_eigen': ['sygv', 'hegv', 'sygvd', 'hegvd', 'sygvx', 'hegvx', 'sygs2', 'hegs2',
-                         'sygst', 'hegst'],
+    'cholesky': ['potrf', 'potf2', 'potri', 'potrs', 'pstrf', 'pstf2', 'posv'],
+    'ldl': ['sytrf', 'sytf2', 'sytri', 'sytrs'],
+    'generalized_eigen': ['sygv', 'hegv', 'sygvd', 'hegvd', 'sygvx', 'hegvx', 'sygvj', 'hegvj',
+                         'sygs2', 'hegs2', 'sygst', 'hegst'],
     'triangular': ['trtri', 'trsm', 'trmm'],
-    'auxiliary': ['lacgv', 'larf', 'larfb', 'larfg', 'larft', 'lasr', 'latrd', 'labrd'],
-    'solvers': ['gesv', 'gels'],
+    'auxiliary': ['lacgv', 'larf', 'larfb', 'larfg', 'larft', 'lasr', 'latrd', 'labrd',
+                  'laswp', 'lacpy', 'laset'],
+    'solvers': ['gesv', 'gels', 'posv'],
     'banded': ['geblttrf', 'geblttrs']
 }
 
@@ -245,7 +250,9 @@ def prioritize_source_files(file_paths: List[str], target_kernels: List[str]) ->
             except Exception as e:
                 print(f"    Warning: Could not analyze file {normalized_path}: {e}")
 
-        if is_essential or priority <= 2:  # Essential or core algorithm files
+        # Include essential files (contains target kernels) or high-priority files (priority <= 3)
+        # Priority 1: core algorithm, 2: auxiliary algorithm, 3: specialized kernels
+        if is_essential or priority <= 3:  # Essential or high-priority algorithm files
             essential_files.append((normalized_path, priority))
         else:
             supporting_files.append((normalized_path, priority))
@@ -337,6 +344,27 @@ def normalize_path(path: str) -> str:
 
     return normalized
 
+def get_include_search_paths() -> List[str]:
+    """
+    Get the list of directories to search for header files.
+    This can be extended to read from CMake configuration or environment variables.
+    """
+    # Base paths relative to project root
+    base_paths = [
+        "library/src/include",
+        "library/src/lapack",
+        "library/src/auxiliary",
+        "library/src/common",
+        "library/src/specialized",
+        "library/src/refact",
+        "library/src"
+    ]
+
+    # Could be extended to read from CMakeLists.txt or environment
+    # For example: parse CMAKE_INCLUDE_PATH or read from a config file
+
+    return base_paths
+
 def find_header_dependencies(file_paths: List[str], ignore_patterns: List[str] = None, visited: Set[str] = None) -> Set[str]:
     """
     Find all header file dependencies from the given files recursively.
@@ -351,6 +379,9 @@ def find_header_dependencies(file_paths: List[str], ignore_patterns: List[str] =
     dependencies = set()
     include_pattern = r'#include\s+["<]([^">\n]+)[">]'
 
+    # Get configurable include search paths
+    include_search_paths = get_include_search_paths()
+
     for file_path in file_paths:
         # Normalize the path first
         file_path = normalize_path(file_path)
@@ -362,10 +393,10 @@ def find_header_dependencies(file_paths: List[str], ignore_patterns: List[str] =
         try:
             with open(file_path, 'r') as f:
                 content = f.read()
-            
+
             # Find all include statements
             includes = re.findall(include_pattern, content)
-            
+
             for include in includes:
                 # Check if this include should be ignored
                 should_ignore = False
@@ -373,20 +404,12 @@ def find_header_dependencies(file_paths: List[str], ignore_patterns: List[str] =
                     if pattern in include:
                         should_ignore = True
                         break
-                
+
                 if not should_ignore and include.endswith('.hpp'):
                     # Try to find the full path of the header
                     if not include.startswith('/'):
-                        # It's a relative include, try to find it
-                        possible_paths = [
-                            f"library/src/include/{include}",
-                            f"library/src/lapack/{include}",
-                            f"library/src/auxiliary/{include}",
-                            f"library/src/common/{include}",
-                            f"library/src/specialized/{include}",
-                            f"library/src/refact/{include}",
-                            f"library/src/{include}"
-                        ]
+                        # It's a relative include, try to find it using configured search paths
+                        possible_paths = [f"{search_path}/{include}" for search_path in include_search_paths]
                         
                         for possible_path in possible_paths:
                             if os.path.exists(possible_path):
@@ -405,56 +428,87 @@ def find_header_dependencies(file_paths: List[str], ignore_patterns: List[str] =
 def find_kernel_functions(file_paths: List[str]) -> List[str]:
     """
     Find kernel functions including:
-    1. Host-side template functions (rocsolver_*_impl, rocsolver_*_template)
+    1. Host-side template functions returning rocblas_status (using exclusion approach)
     2. GPU kernel functions (marked with ROCSOLVER_KERNEL, __global__, or __launch_bounds__)
     Filters out generic kernels that won't help with optimization.
     """
     kernel_functions = set()
 
+    # Host function patterns to EXCLUDE (utility/infrastructure functions)
+    HOST_FUNCTION_EXCLUSIONS = {
+        'getMemorySize', 'argCheck', 'getBlockSize', 'get_blksize', 'get_innerBlkSize',
+        'get_index', 'calcSweeps', 'is_', 'should_', 'can_', 'has_'
+    }
+
     for file_path in file_paths:
         # Normalize path first
         file_path = normalize_path(file_path)
+
+        # Only scan .hpp files for host functions (they're defined in headers)
+        is_hpp_file = file_path.endswith('.hpp')
+
         try:
             with open(file_path, 'r') as f:
                 content = f.read()
 
-            # Find all rocsolver_*_impl functions
-            impl_pattern = r'rocsolver_(\w+)_impl'
-            impl_matches = re.findall(impl_pattern, content)
+            # Find ALL host-side template functions returning rocblas_status in .hpp files
+            # Pattern matches: template<...> rocblas_status function_name(
+            if is_hpp_file:
+                host_pattern = r'template\s*<[^>]+>\s*rocblas_status\s+(\w+)\s*\('
+                host_matches = re.findall(host_pattern, content, re.DOTALL)
 
-            # Find all rocsolver_*_template functions
-            template_pattern = r'rocsolver_(\w+)_template'
-            template_matches = re.findall(template_pattern, content)
+                for match in host_matches:
+                    # Exclude based on exclusion patterns
+                    should_exclude = False
+                    for exclusion in HOST_FUNCTION_EXCLUSIONS:
+                        if exclusion in match:
+                            should_exclude = True
+                            break
 
-            # Add found host functions (check against blacklist)
-            for match in impl_matches:
-                func_name = f"rocsolver_{match}_impl"
-                if func_name not in GENERIC_KERNEL_BLACKLIST:
-                    kernel_functions.add(func_name)
-            for match in template_matches:
-                func_name = f"rocsolver_{match}_template"
-                if func_name not in GENERIC_KERNEL_BLACKLIST:
-                    kernel_functions.add(func_name)
+                    # Also check against generic blacklist
+                    if not should_exclude and match not in GENERIC_KERNEL_BLACKLIST:
+                        kernel_functions.add(match)
 
-            # Find GPU kernel functions marked with ROCSOLVER_KERNEL
-            # Pattern: ROCSOLVER_KERNEL void function_name(
+            # Find GPU kernel functions with various patterns
+            # Pattern 1: ROCSOLVER_KERNEL [void] function_name(
             kernel_pattern1 = r'ROCSOLVER_KERNEL\s+(?:void|__device__|__host__)*\s*(?:__launch_bounds__\([^)]+\)\s*)?(\w+)\s*\('
             kernel_matches1 = re.findall(kernel_pattern1, content)
 
-            # Find GPU kernel functions marked with __global__
-            # Pattern: __global__ void function_name(
+            # Pattern 2: __global__ [void] function_name(
             kernel_pattern2 = r'__global__\s+(?:void|__device__|__host__)*\s*(?:__launch_bounds__\([^)]+\)\s*)?(\w+)\s*\('
             kernel_matches2 = re.findall(kernel_pattern2, content)
 
-            # Find GPU kernel functions with __launch_bounds__
-            # Pattern: __launch_bounds__(N) function_name(
+            # Pattern 3: __launch_bounds__(N) function_name(
             kernel_pattern3 = r'__launch_bounds__\s*\([^)]+\)\s*(\w+)\s*\('
             kernel_matches3 = re.findall(kernel_pattern3, content)
 
+            # Pattern 4: template<...> ROCSOLVER_KERNEL [void] function_name(
+            # Handle multi-line templates with re.DOTALL
+            kernel_pattern4 = r'template\s*<[^>]+>\s*ROCSOLVER_KERNEL\s+(?:void|__device__|__host__)*\s*(?:__launch_bounds__\([^)]+\)\s*)?(\w+)\s*\('
+            kernel_matches4 = re.findall(kernel_pattern4, content, re.DOTALL)
+
+            # Pattern 5: template<...> __launch_bounds__(N) function_name(
+            kernel_pattern5 = r'template\s*<[^>]+>\s*__launch_bounds__\s*\([^)]+\)\s*(\w+)\s*\('
+            kernel_matches5 = re.findall(kernel_pattern5, content, re.DOTALL)
+
+            # Pattern 6: static ROCSOLVER_KERNEL [void] function_name(
+            kernel_pattern6 = r'static\s+ROCSOLVER_KERNEL\s+(?:void|__device__|__host__)*\s*(?:__launch_bounds__\([^)]+\)\s*)?(\w+)\s*\('
+            kernel_matches6 = re.findall(kernel_pattern6, content)
+
+            # Pattern 7: inline __device__ function_name(
+            kernel_pattern7 = r'inline\s+__device__\s+(?:\w+\s+)*(\w+)\s*\('
+            kernel_matches7 = re.findall(kernel_pattern7, content)
+
+            # Combine all matches
+            all_matches = (kernel_matches1 + kernel_matches2 + kernel_matches3 +
+                          kernel_matches4 + kernel_matches5 + kernel_matches6 + kernel_matches7)
+
             # Add all GPU kernel functions (filter against blacklist)
-            for match in kernel_matches1 + kernel_matches2 + kernel_matches3:
-                # Skip common utility names that might be too generic
-                if match not in ['void', 'static', '__device__', '__host__'] and match not in GENERIC_KERNEL_BLACKLIST:
+            for match in all_matches:
+                # Skip common utility names and type keywords that might be captured
+                if (match not in ['void', 'static', '__device__', '__host__', 'inline',
+                                 'const', 'unsigned', 'int', 'float', 'double'] and
+                    match not in GENERIC_KERNEL_BLACKLIST):
                     kernel_functions.add(match)
 
         except Exception as e:
@@ -537,25 +591,23 @@ def generate_yaml_config(base_name: str, files: List[str], existing_yaml_path: s
     # Find all header dependencies (includes recursive search)
     dependencies = find_header_dependencies(source_files)
 
-    # For some functions like POTRF, we should also check for auxiliary dependencies
-    # Look for auxiliary functions in the main files
+    # Look for auxiliary function dependencies in all source files
+    # This is more generic than checking specific base_names
     auxiliary_dir = "library/src/auxiliary"
-    if base_name in ['potrf', 'potf2', 'getrf', 'getf2', 'geqrf', 'geqr2']:
-        # These functions often depend on auxiliary functions
-        for src_file in source_files:
-            if os.path.exists(src_file):
-                try:
-                    with open(src_file, 'r') as f:
-                        content = f.read()
-                    # Look for references to auxiliary functions
-                    aux_pattern = r'rocauxiliary_(\w+)\.hpp'
-                    aux_matches = re.findall(aux_pattern, content)
-                    for match in aux_matches:
-                        aux_file = f"{auxiliary_dir}/rocauxiliary_{match}.hpp"
-                        if os.path.exists(aux_file):
-                            dependencies.add(normalize_path(aux_file))
-                except:
-                    pass
+    for src_file in source_files:
+        if os.path.exists(src_file):
+            try:
+                with open(src_file, 'r') as f:
+                    content = f.read()
+                # Look for references to auxiliary functions in includes
+                aux_pattern = r'rocauxiliary_(\w+)\.hpp'
+                aux_matches = re.findall(aux_pattern, content)
+                for match in aux_matches:
+                    aux_file = f"{auxiliary_dir}/rocauxiliary_{match}.hpp"
+                    if os.path.exists(aux_file):
+                        dependencies.add(normalize_path(aux_file))
+            except:
+                pass
 
     # Normalize all dependency paths and remove duplicates
     normalized_deps = {normalize_path(dep) for dep in dependencies}
@@ -588,11 +640,43 @@ def generate_yaml_config(base_name: str, files: List[str], existing_yaml_path: s
     # Use prioritized files for source_file_path
     all_source_files = prioritized_source_files
 
-    # Limit source files for LLM context optimization
+    # Limit source files for LLM context optimization with smarter selection
     if len(all_source_files) > MAX_SOURCE_FILES:
         print(f"  Limiting source files from {len(all_source_files)} to {MAX_SOURCE_FILES} for LLM optimization")
-        # Keep essential files and top priority supporting files
-        all_source_files = all_source_files[:MAX_SOURCE_FILES]
+
+        # Smarter file selection: prioritize files containing target kernels
+        kernel_containing_files = set()
+        for kernel in target_functions:
+            for source_file in all_source_files:
+                try:
+                    if os.path.exists(source_file):
+                        with open(source_file, 'r') as f:
+                            content = f.read()
+                            # Check if this file contains the kernel definition
+                            if re.search(rf'\b{re.escape(kernel)}\s*\(', content):
+                                kernel_containing_files.add(source_file)
+                except:
+                    pass
+
+        # Keep all kernel-containing files plus top priority files up to MAX_SOURCE_FILES
+        essential_files = []
+        supporting_files = []
+
+        for f in all_source_files:
+            if f in kernel_containing_files:
+                essential_files.append(f)
+            else:
+                supporting_files.append(f)
+
+        # Calculate how many supporting files we can include
+        remaining_slots = MAX_SOURCE_FILES - len(essential_files)
+        if remaining_slots > 0:
+            all_source_files = essential_files + supporting_files[:remaining_slots]
+        else:
+            # If too many kernel-containing files, keep only the most essential ones
+            all_source_files = essential_files[:MAX_SOURCE_FILES]
+
+        print(f"  Selected {len(essential_files)} kernel-containing files and {min(remaining_slots, len(supporting_files))} supporting files")
     
     # If existing config exists, preserve commands and only update paths/functions
     if existing_config:

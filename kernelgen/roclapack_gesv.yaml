@@ -16,8 +16,10 @@ source_file_path: &id001
 - library/src/include/rocsolver_run_specialized_kernels.hpp
 gen_file_path: *id001
 target_kernel_functions:
+- larf_run_small
+- larfg_run_small
 - laswp_kernel
-- rocsolver_gesv_impl
+- rocsolver_ger
 - rocsolver_gesv_template
 - rocsolver_laswp_template
 compile_command:

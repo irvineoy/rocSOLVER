@@ -5,8 +5,13 @@ source_file_path: &id001
 - library/src/include/rocsolver_run_specialized_kernels.hpp
 gen_file_path: *id001
 target_kernel_functions:
+- getf2_run_panel
+- getf2_run_small
+- getri_run_small
+- larf_run_small
+- larfg_run_small
 - laswp_kernel
-- rocsolver_getrs_impl
+- rocsolver_ger
 - rocsolver_getrs_template
 - rocsolver_laswp_template
 compile_command:

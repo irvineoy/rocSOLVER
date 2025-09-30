@@ -13,8 +13,9 @@ source_file_path: &id001
 - library/src/include/rocsolver_run_specialized_kernels.hpp
 gen_file_path: *id001
 target_kernel_functions:
-- rocsolver_sygs2_hegs2_impl
-- rocsolver_sygs2_hegs2_template
+- larf_run_small
+- larfg_run_small
+- rocsolver_ger
 - sygs2_set_diag1
 - sygs2_set_diag2
 - sygs2_set_diag3

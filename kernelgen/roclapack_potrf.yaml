@@ -7,8 +7,10 @@ source_file_path: &id001
 gen_file_path: *id001
 target_kernel_functions:
 - chk_positive
-- rocsolver_potf2_template
-- rocsolver_potrf_impl
+- larf_run_small
+- larfg_run_small
+- potf2_run_small
+- rocsolver_ger
 - rocsolver_potrf_template
 - sqrtDiagOnward
 compile_command:

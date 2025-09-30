@@ -8,6 +8,8 @@ source_file_path: &id001
 - library/src/include/rocsolver_run_specialized_kernels.hpp
 gen_file_path: *id001
 target_kernel_functions:
+- larf_run_small
+- larfg_run_small
 - latrd_dot_scale_axpy
 - latrd_lower_computeW_gemv_kernel
 - latrd_lower_computeW_gemvt_kernel
@@ -22,10 +24,7 @@ target_kernel_functions:
 - latrd_upper_computeW_symv_kernel
 - latrd_upper_updateA_kernel
 - latrd_upper_updateW_kernel
-- rocsolver_latrd_forsytrd_template
-- rocsolver_latrd_template
-- rocsolver_sytd2_hetd2_template
-- rocsolver_sytrd_hetrd_impl
+- rocsolver_ger
 - rocsolver_sytrd_hetrd_template
 - set_taubeta
 - set_tridiag
