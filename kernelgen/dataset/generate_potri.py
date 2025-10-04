@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+import json
+import time
+
+# POTRI: Inverse of positive definite matrix using Cholesky factorization
+entries = []
+
+# Entry 1: Algorithm overview
+entries.append({
+    "id": str(int(time.time() * 1000)),
+    "level": "L3",
+    "interface": "potri",
+    "instruction": "Explain the complete POTRI algorithm. How does it compute the inverse of a symmetric positive definite matrix using the Cholesky factorization?",
+    "context_text": "POTRI computes the inverse of a symmetric positive definite matrix A using its Cholesky factorization from POTRF. It combines TRTRI and TRMM operations.",
+    "code_blocks": [
+        {
+            "path": "library/src/lapack/roclapack_potri.hpp",
+            "language": "cpp",
+            "content": "// compute inverse of U or L (also check singularity and update info)\nrocsolver_trtri_template<BATCHED, STRIDED, T>(handle, uplo, rocblas_diagonal_non_unit, n, A,\n                                              shiftA, lda, strideA, info, batch_count, work1,\n                                              work2, work3, work4, tmpcopy, workArr, optim_mem);\n\n// copy elements of A to serve as B matrix for TRMM\nROCSOLVER_LAUNCH_KERNEL(copy_mat<T>, dim3(copyblocks, copyblocks, batch_count), dim3(32, 32), 0,\n                        stream, copymat_to_buffer, n, n, A, shiftA, lda, strideA, tmpcopy,\n                        no_mask{}, uplo);\n\n// compute inv(U) * inv(U)' or inv(L)' * inv(L) and store in tmpcopy\nrocblas_side side = (uplo == rocblas_fill_upper ? rocblas_side_right : rocblas_side_left);\nrocblasCall_trmm(handle, side, uplo, rocblas_operation_conjugate_transpose,\n                 rocblas_diagonal_non_unit, n, n, &one, 0, A, shiftA, lda, strideA, tmpcopy, 0,\n                 n, n * n, batch_count, workArr);\n\n// copy elements of tmpcopy into A in cases where info is zero\nROCSOLVER_LAUNCH_KERNEL(copy_mat<T>, dim3(copyblocks, copyblocks, batch_count), dim3(32, 32), 0,\n                        stream, copymat_from_buffer, n, n, A, shiftA, lda, strideA, tmpcopy,\n                        info_mask(info, info_mask::negate), uplo, rocblas_diagonal_non_unit);"
+        }
+    ],
+    "answer": "POTRI algorithm for computing inverse of SPD matrix:\n\nPrerequisite: A = L*L^T (lower) or A = U^T*U (upper) from POTRF\nGoal: Compute A^(-1)\n\nStep 1: Triangular matrix inverse (TRTRI)\n- Compute L^(-1) if uplo=lower\n- Compute U^(-1) if uplo=upper\n- Overwrites A with triangular inverse\n- Checks for singularity (diagonal zeros)\n- Sets info if matrix is singular\n\nStep 2: Copy triangular inverse\n- Save inv(L) or inv(U) to tmpcopy buffer\n- Only copies the specified triangle (upper or lower)\n- Prepares for TRMM operation\n\nStep 3: Compute symmetric product\nFor upper triangle (A = U^T*U):\n- Compute inv(U) * inv(U)^T\n- TRMM: multiply inv(U) by its conjugate transpose\n- side=right, op=conjugate_transpose\n- Result: A^(-1) = inv(U) * inv(U)^T\n\nFor lower triangle (A = L*L^T):\n- Compute inv(L)^T * inv(L)\n- TRMM: multiply inv(L)^T by inv(L)\n- side=left, op=conjugate_transpose\n- Result: A^(-1) = inv(L)^T * inv(L)\n\nStep 4: Copy result back\n- Copy tmpcopy to A where info=0 (non-singular)\n- Preserve original A where info>0 (singular)\n- Only stores specified triangle (exploits symmetry)\n\nMathematical derivation:\nA = L*L^T\nA^(-1) = (L*L^T)^(-1)\n      = (L^T)^(-1) * L^(-1)\n      = (L^(-1))^T * L^(-1)\n\nSimilarly for upper:\nA = U^T*U\nA^(-1) = (U^T*U)^(-1)\n      = U^(-1) * (U^T)^(-1)\n      = U^(-1) * (U^(-1))^T\n\nComplexity: O(n^3/3) for TRTRI + O(n^3) for TRMM = O(4n^3/3) total",
+    "rationale": "POTRI computes the inverse of an SPD matrix by: (1) computing inverse of triangular factor using TRTRI, (2) computing symmetric product inv(L)^T*inv(L) or inv(U)*inv(U)^T using TRMM. The result exploits symmetry to store only one triangle.",
+    "tags": ["algorithm", "potri", "trtri", "trmm", "matrix-inverse", "cholesky"]
+})
+time.sleep(0.001)
+
+# Entry 2: Why use TRTRI then TRMM?
+entries.append({
+    "id": str(int(time.time() * 1000)),
+    "level": "L2",
+    "interface": "potri",
+    "instruction": "Why does POTRI use TRTRI followed by TRMM instead of directly computing the inverse? What are the computational advantages?",
+    "context_text": "POTRI could theoretically solve A*X=I directly, but instead uses a two-step approach with TRTRI and TRMM.",
+    "code_blocks": [],
+    "answer": "POTRI uses TRTRI + TRMM approach for computational efficiency:\n\n1. Direct approach (solve A*X=I):\n- For each column i of I: solve A*x_i = e_i\n- Using Cholesky: L*L^T*x_i = e_i\n- Forward: L*y_i = e_i\n- Backward: L^T*x_i = y_i\n- Repeat n times (one per column)\n- Complexity: n * O(2n^2) = O(2n^3)\n\n2. TRTRI + TRMM approach:\n- Step 1: Compute L^(-1) using TRTRI: O(n^3/3)\n- Step 2: Compute L^(-1)^T * L^(-1) using TRMM: O(n^3)\n- Total: O(n^3/3 + n^3) = O(4n^3/3)\n\nComparison:\n- Direct: O(2n^3) = O(6n^3/3)\n- TRTRI+TRMM: O(4n^3/3)\n- Speedup: 6/4 = 1.5x faster\n\nWhy faster?\n- TRTRI (triangular inverse) is highly optimized\n  - Recursive blocked algorithm\n  - Uses TRSM (triangular solve) which is BLAS-3\n  - Cache-friendly access patterns\n\n- TRMM (triangular matrix multiply) is BLAS-3\n  - Highly optimized on GPUs\n  - Better data reuse than repeated solves\n  - Exploits symmetry (only compute one triangle)\n\nAdditional advantages:\n- Numerical stability: TRTRI + TRMM more stable\n- Parallelism: TRMM parallelizes better than sequential solves\n- Memory access: Better cache locality\n- GPU efficiency: BLAS-3 operations saturate GPU better\n\nExample (n=1024):\n- Direct solves: 6*1024^3/3 = 2.15 GFLOPS\n- TRTRI+TRMM: 4*1024^3/3 = 1.43 GFLOPS (33% fewer operations)\n- Plus better GPU utilization -> 2x actual speedup",
+    "rationale": "POTRI uses TRTRI+TRMM instead of direct solves because it requires 33% fewer operations (4n^3/3 vs 2n^3) and uses highly optimized BLAS-3 routines. The two-step approach is both faster and more numerically stable than solving A*X=I column by column.",
+    "tags": ["algorithm", "potri", "trtri", "trmm", "performance", "complexity"]
+})
+time.sleep(0.001)
+
+# Entry 3: Workspace calculation
+entries.append({
+    "id": str(int(time.time() * 1000)),
+    "level": "L2",
+    "interface": "potri",
+    "instruction": "How does POTRI calculate its workspace? Explain the tmpcopy buffer and why it needs n*n elements.",
+    "context_text": "POTRI requires workspace for TRTRI plus an additional tmpcopy buffer for the intermediate results.",
+    "code_blocks": [
+        {
+            "path": "library/src/lapack/roclapack_potri.hpp",
+            "language": "cpp",
+            "content": "// requirements for calling TRTRI\nrocsolver_trtri_getMemorySize<BATCHED, STRIDED, T>(rocblas_diagonal_non_unit, n, batch_count,\n                                                   size_work1, size_work2, size_work3, size_work4,\n                                                   size_tmpcopy, size_workArr, optim_mem);\n\n// required space to copy A\n*size_tmpcopy = std::max(*size_tmpcopy, sizeof(T) * n * n * batch_count);"
+        }
+    ],
+    "answer": "POTRI workspace calculation:\n\n1. Query TRTRI workspace:\n- work1-4: For TRMV, TRSM, GEMM operations in triangular inverse\n- tmpcopy_trtri: For saving A before inversion (if singular)\n- workArr: Array of pointers for batched operations\n- optim_mem: Optimization flag\n\n2. Additional POTRI requirement:\n- tmpcopy = max(tmpcopy_trtri, n*n*batch_count*sizeof(T))\n- Must fit entire matrix (not just triangle)\n- Used for intermediate storage in TRMM\n\nWhy n*n elements?\n\nStep-by-step usage:\n\na) After TRTRI:\n   A contains inv(L) in lower triangle (or inv(U) in upper)\n   \nb) Copy inv(L) to tmpcopy:\n   - Only copy lower triangle (n*(n+1)/2 elements)\n   - But store in full n*n matrix format\n   - Needed for TRMM operation\n\nc) TRMM computes inv(L)^T * inv(L):\n   - Treats tmpcopy as matrix B\n   - Result written back to tmpcopy\n   - TRMM needs full matrix workspace\n\nd) Copy result to A:\n   - tmpcopy contains A^(-1)\n   - Copy back to A (only triangle needed)\n\nWhy not just triangle?\n- TRMM (BLAS-3) expects standard matrix layout\n- Cannot efficiently multiply stored-triangle formats\n- Full matrix simpler for GPU kernels\n- Performance loss minimal (extra storage, not computation)\n\nMemory breakdown (n=1024, float):\n- TRTRI workspace: ~1MB (various buffers)\n- tmpcopy: 1024*1024*4 = 4MB (full matrix)\n- Total: ~5MB per batch\n\nOptimization: Could pack triangle for small n\n- For n <= 128: Triangle packing worthwhile\n- For n > 128: Full storage simpler and faster\n- Current implementation: Always use full matrix",
+    "rationale": "POTRI queries TRTRI workspace and ensures tmpcopy is at least n*n*batch_count elements. This full matrix buffer is needed because TRMM operates on standard matrix layouts, even though only one triangle contains unique values. The simplicity and performance of BLAS-3 TRMM justifies the extra storage.",
+    "tags": ["memory", "workspace", "potri", "trtri", "tmpcopy"]
+})
+time.sleep(0.001)
+
+# Entry 4: Argument validation
+entries.append({
+    "id": str(int(time.time() * 1000)),
+    "level": "L1",
+    "interface": "potri",
+    "instruction": "What arguments does POTRI validate? Why must uplo be either upper or lower?",
+    "context_text": "POTRI validates uplo, n, lda, and pointers with specific requirements.",
+    "code_blocks": [
+        {
+            "path": "library/src/lapack/roclapack_potri.hpp",
+            "language": "cpp",
+            "content": "// 1. invalid/non-supported values\nif(uplo != rocblas_fill_upper && uplo != rocblas_fill_lower)\n    return rocblas_status_invalid_value;\n\n// 2. invalid size\nif(n < 0 || lda < n || batch_count < 0)\n    return rocblas_status_invalid_size;\n\n// 3. invalid pointers\nif((n && !A) || (batch_count && !info))\n    return rocblas_status_invalid_pointer;"
+        }
+    ],
+    "answer": "POTRI argument validation:\n\n1. uplo validation:\nif(uplo != rocblas_fill_upper && uplo != rocblas_fill_lower)\n    return rocblas_status_invalid_value;\n\nWhy required?\n- Specifies which triangle contains Cholesky factor\n- uplo=lower: A contains L from A=L*L^T\n- uplo=upper: A contains U from A=U^T*U\n- Other values undefined (no meaning for SPD inverse)\n\n2. Size validation:\n- n >= 0: Matrix dimension\n- lda >= n: Leading dimension must fit matrix\n- batch_count >= 0: Number of matrices\n\n3. Pointer validation:\n- (n && !A): A required when n > 0\n- (batch_count && !info): info required when batch_count > 0\n\nDifferences from other routines:\n\nGESV: No uplo (uses full matrix)\nPOTRF: Same uplo validation (produces factorization)\nPOTRI: Same uplo validation (consumes factorization)\nPOTRS: Same uplo validation (uses factorization for solve)\n\nCommon mistakes:\n- Passing uplo from wrong factorization\n- Using rocblas_fill_full (not supported for SPD)\n- Mismatching uplo between POTRF and POTRI\n\nCorrect usage:\nrocsolver_spotrf(handle, rocblas_fill_lower, n, A, lda, info);\nif(info == 0)\n    rocsolver_spotri(handle, rocblas_fill_lower, n, A, lda, info);\n    // Must use same uplo!",
+    "rationale": "POTRI validates uplo must be upper or lower because it specifies which triangle contains the Cholesky factor. The uplo value determines the algorithm (inv(L)^T*inv(L) vs inv(U)*inv(U)^T) and must match the triangle used in the original POTRF factorization.",
+    "tags": ["validation", "potri", "uplo", "arguments"]
+})
+time.sleep(0.001)
+
+# Entry 5: C API for all precisions
+entries.append({
+    "id": str(int(time.time() * 1000)),
+    "level": "L3",
+    "interface": "potri",
+    "instruction": "Write the C API signatures for all 4 POTRI precision variants. What parameters do they all have in common?",
+    "context_text": "POTRI provides separate C functions for each precision type.",
+    "code_blocks": [
+        {
+            "path": "library/src/lapack/roclapack_potri.cpp",
+            "language": "cpp",
+            "content": "extern \"C\" {\n\nrocblas_status rocsolver_spotri(rocblas_handle handle,\n                                const rocblas_fill uplo,\n                                const rocblas_int n,\n                                float* A,\n                                const rocblas_int lda,\n                                rocblas_int* info)\n{\n    return rocsolver::rocsolver_potri_impl<float>(handle, uplo, n, A, lda, info);\n}\n\nrocblas_status rocsolver_dpotri(rocblas_handle handle,\n                                const rocblas_fill uplo,\n                                const rocblas_int n,\n                                double* A,\n                                const rocblas_int lda,\n                                rocblas_int* info)\n{\n    return rocsolver::rocsolver_potri_impl<double>(handle, uplo, n, A, lda, info);\n}"
+        }
+    ],
+    "answer": "POTRI C API for all precisions:\n\n1. rocsolver_spotri (float)\nrocblas_status rocsolver_spotri(\n    rocblas_handle handle,\n    const rocblas_fill uplo,\n    const rocblas_int n,\n    float* A,\n    const rocblas_int lda,\n    rocblas_int* info);\n\n2. rocsolver_dpotri (double)\nrocblas_status rocsolver_dpotri(\n    rocblas_handle handle,\n    const rocblas_fill uplo,\n    const rocblas_int n,\n    double* A,\n    const rocblas_int lda,\n    rocblas_int* info);\n\n3. rocsolver_cpotri (complex float)\nrocblas_status rocsolver_cpotri(\n    rocblas_handle handle,\n    const rocblas_fill uplo,\n    const rocblas_int n,\n    rocblas_float_complex* A,\n    const rocblas_int lda,\n    rocblas_int* info);\n\n4. rocsolver_zpotri (complex double)\nrocblas_status rocsolver_zpotri(\n    rocblas_handle handle,\n    const rocblas_fill uplo,\n    const rocblas_int n,\n    rocblas_double_complex* A,\n    const rocblas_int lda,\n    rocblas_int* info);\n\nCommon parameters (all variants):\n- rocblas_handle handle: rocBLAS context\n- rocblas_fill uplo: Upper or lower triangle\n- rocblas_int n: Matrix dimension\n- rocblas_int lda: Leading dimension\n- rocblas_int* info: Success/error indicator\n\nOnly difference: A pointer type\n- spotri: float* A\n- dpotri: double* A  \n- cpotri: rocblas_float_complex* A\n- zpotri: rocblas_double_complex* A\n\nAll call same template:\nrocsolver_potri_impl<T> where T = precision type\n\nNo nrhs parameter (unlike POTRS)\n- POTRI computes full inverse (n*n)\n- POTRS solves specific RHS (n*nrhs)\n\nNo ipiv parameter (unlike GETRI)\n- POTRI: SPD matrix, no pivoting\n- GETRI: General matrix, needs pivot info",
+    "rationale": "POTRI provides 4 C API variants (spotri, dpotri, cpotri, zpotri) differing only in A pointer type. All share common parameters: handle, uplo, n, lda, info. Unlike POTRS (has nrhs) and GETRI (has ipiv), POTRI computes full inverse of SPD matrices without additional parameters.",
+    "tags": ["api", "potri", "precision", "float", "double", "complex"]
+})
+time.sleep(0.001)
+
+# Entry 6: Upper vs lower triangle computation
+entries.append({
+    "id": str(int(time.time() * 1000)),
+    "level": "L2",
+    "interface": "potri",
+    "instruction": "Explain how POTRI handles upper vs lower triangles. Why does the TRMM side parameter depend on uplo?",
+    "context_text": "POTRI computes different products depending on whether uplo is upper or lower.",
+    "code_blocks": [
+        {
+            "path": "library/src/lapack/roclapack_potri.hpp",
+            "language": "cpp",
+            "content": "// compute inv(U) * inv(U)' or inv(L)' * inv(L) and store in tmpcopy\nrocblas_side side = (uplo == rocblas_fill_upper ? rocblas_side_right : rocblas_side_left);\nrocblasCall_trmm(handle, side, uplo, rocblas_operation_conjugate_transpose,\n                 rocblas_diagonal_non_unit, n, n, &one, 0, A, shiftA, lda, strideA, tmpcopy, 0,\n                 n, n * n, batch_count, workArr);"
+        }
+    ],
+    "answer": "POTRI upper vs lower triangle handling:\n\nUpper triangle (uplo = rocblas_fill_upper):\n- Input: A contains U where A_original = U^T*U\n- After TRTRI: A contains inv(U)\n- TRMM computes: inv(U) * inv(U)^T\n- side = right (multiply inv(U)^T from right)\n- Result: A^(-1) = inv(U) * inv(U)^T\n\nMathematically:\nA = U^T*U\nA^(-1) = (U^T*U)^(-1) = U^(-1) * (U^T)^(-1) = inv(U) * inv(U)^T\n\nTRMM call for upper:\ntrmm(side=right, uplo=upper, op=conjugate_transpose,\n     n, n, alpha=1, A=inv(U), B=tmpcopy)\nComputes: tmpcopy = tmpcopy * inv(U)^T = inv(U) * inv(U)^T\n\nLower triangle (uplo = rocblas_fill_lower):\n- Input: A contains L where A_original = L*L^T\n- After TRTRI: A contains inv(L)\n- TRMM computes: inv(L)^T * inv(L)\n- side = left (multiply inv(L)^T from left)\n- Result: A^(-1) = inv(L)^T * inv(L)\n\nMathematically:\nA = L*L^T\nA^(-1) = (L*L^T)^(-1) = (L^T)^(-1) * L^(-1) = inv(L)^T * inv(L)\n\nTRMM call for lower:\ntrmm(side=left, uplo=lower, op=conjugate_transpose,\n     n, n, alpha=1, A=inv(L), B=tmpcopy)\nComputes: tmpcopy = inv(L)^T * tmpcopy = inv(L)^T * inv(L)\n\nWhy side depends on uplo?\n\nTRMM operation:\n- side=left: C = op(A)*B\n- side=right: C = B*op(A)\n\nFor upper (want inv(U) * inv(U)^T):\n- Need: B * inv(U)^T\n- Use: side=right, op=conjugate_transpose\n\nFor lower (want inv(L)^T * inv(L)):\n- Need: inv(L)^T * B\n- Use: side=left, op=conjugate_transpose\n\nBoth produce symmetric result (one triangle stored)",
+    "rationale": "POTRI uses side=right for upper triangle (computes inv(U)*inv(U)^T) and side=left for lower triangle (computes inv(L)^T*inv(L)). The side parameter ensures the conjugate transpose is applied correctly to produce the symmetric inverse while operating on the appropriate triangle.",
+    "tags": ["potri", "uplo", "trmm", "upper-lower", "triangular"]
+})
+time.sleep(0.001)
+
+# Entry 7: Singularity checking
+entries.append({
+    "id": str(int(time.time() * 1000)),
+    "level": "L1",
+    "interface": "potri",
+    "instruction": "How does POTRI check for singular matrices? What happens when info > 0?",
+    "context_text": "POTRI must detect if the Cholesky factor has zero diagonal elements indicating singularity.",
+    "code_blocks": [
+        {
+            "path": "library/src/lapack/roclapack_trtri.hpp",
+            "language": "cpp",
+            "content": "// check for singularities if non-unit diagonal\nif(diag == rocblas_diagonal_non_unit)\n{\n    ROCSOLVER_LAUNCH_KERNEL(check_singularity<T>, dim3(batch_count, 1, 1), dim3(1, 64, 1), 0,\n                            stream, n, A, shiftA, lda, strideA, info);\n}"
+        }
+    ],
+    "answer": "POTRI singularity checking:\n\nWhen does it check?\n- During TRTRI (triangular inverse)\n- Only for non-unit diagonal (always true for POTRI)\n- Before attempting inversion\n\nHow it checks:\ncheck_singularity kernel:\n- Examines diagonal elements A[i,i] for i=0..n-1\n- If any A[i,i] == 0: set info = i+1 (1-based index)\n- Parallel across batches (each batch checked independently)\n\nWhat causes singularity?\n1. Original matrix A not positive definite\n2. POTRF failed (info > 0 from factorization)\n3. Numerical errors during factorization\n4. Zero diagonal in Cholesky factor\n\nExample:\nA = [4  2]\n    [2  1]  (determinant = 0, rank-deficient)\n\nPOTRF produces:\nL = [2  0]\n    [1  0]  (L[1,1] = 0 - singular!)\n\nPOTRI behavior:\n- check_singularity finds L[1,1] = 0\n- Sets info = 2 (second diagonal element)\n- Preserves original L in A (no inversion)\n- Returns without computing inverse\n\nWhat happens when info > 0?\n1. TRTRI detects singularity\n2. A is NOT inverted (preserved)\n3. info indicates which diagonal element is zero\n4. User should NOT use A as inverse\n\nCorrect error handling:\nrocsolver_spotrf(handle, uplo, n, A, lda, &info1);\nif(info1 > 0) {\n    printf(\"POTRF failed: not positive definite\\n\");\n    return;\n}\n\nrocsolver_spotri(handle, uplo, n, A, lda, &info2);\nif(info2 > 0) {\n    printf(\"POTRI failed: singular diagonal at %d\\n\", info2);\n    // A still contains Cholesky factor, not inverse\n} else {\n    // A contains inverse\n}",
+    "rationale": "POTRI checks singularity via check_singularity kernel in TRTRI, which examines diagonal elements for zeros. When info > 0, the matrix is singular at that diagonal position, inversion is aborted, and A preserves the original Cholesky factor rather than containing a corrupted inverse.",
+    "tags": ["potri", "trtri", "singularity", "info", "error-handling"]
+})
+time.sleep(0.001)
+
+# Entry 8: Comparison with GETRI
+entries.append({
+    "id": str(int(time.time() * 1000)),
+    "level": "L2",
+    "interface": "potri",
+    "instruction": "Compare POTRI and GETRI. When should you use each and what are the performance differences?",
+    "context_text": "POTRI inverts SPD matrices using Cholesky, GETRI inverts general matrices using LU.",
+    "code_blocks": [],
+    "answer": "POTRI vs GETRI comparison:\n\nPOTRI (SPD matrices):\n- Factorization: Cholesky (A = L*L^T)\n- Matrix type: Symmetric positive definite\n- Complexity: O(4n^3/3) = O(n^3/3) POTRF + O(n^3) TRMM\n- Storage: Half matrix (uplo triangle)\n- Parameters: uplo (no ipiv)\n- Exploits: Symmetry and positive definiteness\n\nGETRI (General matrices):\n- Factorization: LU with pivoting (A = P*L*U)\n- Matrix type: Any invertible square matrix\n- Complexity: O(8n^3/3) = O(2n^3/3) GETRF + O(2n^3) TRTRI+GEMM\n- Storage: Full matrix\n- Parameters: ipiv (no uplo)\n- No special structure\n\nWhen to use POTRI:\n- Covariance matrices (statistics)\n- Gram matrices (least squares)\n- Kernel matrices (machine learning)\n- Mass/stiffness matrices (FEM)\n- Positive definite systems\n\nWhen to use GETRI:\n- General invertible matrices\n- Non-symmetric matrices\n- Indefinite matrices\n- Unknown matrix properties\n\nPerformance (n=1024):\nPOTRI:\n- POTRF: O(n^3/3) = 358M flops\n- TRTRI: O(n^3/3) = 358M flops\n- TRMM: O(n^3) = 1074M flops\n- Total: 1.79 Gflops\n- Time: ~12ms (GPU)\n\nGETRI:\n- GETRF: O(2n^3/3) = 716M flops\n- TRTRI: O(n^3/3) = 358M flops\n- GEMM updates: O(2n^3) = 2148M flops\n- Total: 3.22 Gflops\n- Time: ~22ms (GPU)\n\nSpeedup: POTRI is 1.8x faster than GETRI\n\nMemory:\n- POTRI: Only store one triangle (save 50%)\n- GETRI: Must store full matrix + pivot indices\n\nNumerical stability:\n- POTRI: No pivoting (SPD always stable)\n- GETRI: Requires pivoting for stability\n\nCommon mistake:\nUsing GETRI on SPD matrix (works but slower)\n\nOptimal:\nif(matrix_is_SPD)\n    use POTRI  // 1.8x faster\nelse\n    use GETRI  // General case",
+    "rationale": "POTRI inverts SPD matrices using Cholesky (O(4n^3/3)) and is 1.8x faster than GETRI which uses LU (O(8n^3/3)). POTRI exploits symmetry (half storage) and doesn't need pivoting. Use POTRI for SPD matrices, GETRI for general invertible matrices.",
+    "tags": ["comparison", "potri", "getri", "matrix-inverse", "performance"]
+})
+time.sleep(0.001)
+
+# Entry 9: Why copy before/after TRMM?
+entries.append({
+    "id": str(int(time.time() * 1000)),
+    "level": "L1",
+    "interface": "potri",
+    "instruction": "Why does POTRI copy A to tmpcopy before TRMM and copy back afterwards? What is the info_mask doing?",
+    "context_text": "POTRI performs conditional copies around the TRMM operation using info_mask.",
+    "code_blocks": [
+        {
+            "path": "library/src/lapack/roclapack_potri.hpp",
+            "language": "cpp",
+            "content": "// copy elements of A to serve as B matrix for TRMM\nROCSOLVER_LAUNCH_KERNEL(copy_mat<T>, dim3(copyblocks, copyblocks, batch_count), dim3(32, 32), 0,\n                        stream, copymat_to_buffer, n, n, A, shiftA, lda, strideA, tmpcopy,\n                        no_mask{}, uplo);\n\n// compute inv(U) * inv(U)' or inv(L)' * inv(L) and store in tmpcopy  \nrocblasCall_trmm(...);\n\n// copy elements of tmpcopy into A in cases where info is zero\nROCSOLVER_LAUNCH_KERNEL(copy_mat<T>, dim3(copyblocks, copyblocks, batch_count), dim3(32, 32), 0,\n                        stream, copymat_from_buffer, n, n, A, shiftA, lda, strideA, tmpcopy,\n                        info_mask(info, info_mask::negate), uplo, rocblas_diagonal_non_unit);"
+        }
+    ],
+    "answer": "POTRI copy operations and info_mask:\n\nBefore TRMM:\ncopy_mat(copymat_to_buffer, A -> tmpcopy, no_mask, uplo)\n- Copy inv(L) or inv(U) from A to tmpcopy\n- no_mask: Always copy (unconditional)\n- uplo: Only copy specified triangle\n- Reason: TRMM needs source matrix (inv(L) or inv(U))\n\nTRMM operation:\ntrmm(tmpcopy, A, result -> tmpcopy)\n- Computes inv(L)^T*inv(L) or inv(U)*inv(U)^T\n- Stores result in tmpcopy\n- A still contains inv(L) or inv(U)\n- tmpcopy now contains A^(-1)\n\nAfter TRMM:\ncopy_mat(copymat_from_buffer, tmpcopy -> A,\n         info_mask(info, negate), uplo, non_unit)\n- Copy A^(-1) from tmpcopy to A\n- info_mask(info, negate): Only copy where info == 0\n- uplo: Only copy specified triangle\n- non_unit: Don't copy unit diagonal\n\nWhat is info_mask doing?\n\ninfo_mask(info, negate):\n- Creates per-batch mask: mask[b] = (info[b] == 0)\n- negate flag: copy when condition TRUE (info == 0)\n- Without negate: copy when condition FALSE (info != 0)\n\nEffect:\n- If info[b] = 0: Copy result (successful inversion)\n- If info[b] > 0: Don't copy (singular, keep original)\n\nWhy conditional copy?\n- TRTRI may detect singularity (sets info > 0)\n- If singular: don't overwrite A with garbage\n- Preserve original Cholesky factor for inspection\n\nExample (batch=2):\nBatch 0: info=0 (non-singular)\n- TRMM computes valid A^(-1)\n- Copy tmpcopy -> A[0]\n- A[0] contains inverse\n\nBatch 1: info=2 (singular at position 2)\n- TRMM runs but result invalid\n- DON'T copy tmpcopy -> A[1]\n- A[1] still contains inv(L) from TRTRI\n\nUser sees:\n- A[0]: Inverse (success)\n- A[1]: Cholesky factor (failure, not inverse)",
+    "rationale": "POTRI copies A to tmpcopy unconditionally before TRMM (to preserve inv(L) or inv(U) as source), then copies result back conditionally using info_mask(negate) to only overwrite A where info==0 (successful). This preserves the Cholesky factor in A when matrices are singular rather than corrupting it with invalid results.",
+    "tags": ["potri", "trmm", "info-mask", "copy", "conditional"]
+})
+time.sleep(0.001)
+
+# Entry 10: TRTRI algorithm
+entries.append({
+    "id": str(int(time.time() * 1000)),
+    "level": "L3",
+    "interface": "potri",
+    "instruction": "Explain the TRTRI algorithm used by POTRI. How does it compute the inverse of a triangular matrix?",
+    "context_text": "POTRI calls TRTRI to invert the Cholesky factor. TRTRI uses a blocked recursive algorithm.",
+    "code_blocks": [
+        {
+            "path": "library/src/lapack/roclapack_trtri.hpp",
+            "language": "cpp",
+            "content": "// use blocked algorithm with block size blk\nif(uplo == rocblas_fill_upper)\n{\n    for(rocblas_int j = 0; j < n; j += blk)\n    {\n        jb = std::min(n - j, blk);\n\n        // update current block column\n        rocblasCall_trmm(handle, rocblas_side_left, uplo, rocblas_operation_none, diag, j,\n                         jb, &one, 0, A, shiftA, lda, strideA, A, shiftA + idx2D(0, j, lda),\n                         lda, strideA, batch_count);\n\n        rocblasCall_trsm(handle, rocblas_side_right, uplo, rocblas_operation_none, diag, j,\n                         jb, &minone, A, shiftA + idx2D(j, j, lda), lda, strideA, A,\n                         shiftA + idx2D(0, j, lda), lda, strideA, batch_count, optim_mem,\n                         work1, work2, work3, work4);\n\n        trti2<T>(handle, uplo, diag, jb, A, shiftA + idx2D(j, j, lda), lda, strideA,\n                 batch_count, (T*)work1, (T*)work3);\n    }\n}"
+        }
+    ],
+    "answer": "TRTRI triangular inverse algorithm:\n\nGoal: Given triangular U, compute U^(-1) in place\n\nBlocked algorithm (upper triangle):\nFor j = 0 to n-1 by block_size:\n  1. Update block column U[0:j, j:j+blk]\n  2. Invert diagonal block U[j:j+blk, j:j+blk]\n  \nStep 1: Update block column\n  TRMM: U[0:j, j:j+blk] = U[0:j, 0:j] * U[0:j, j:j+blk]\n  TRSM: Solve U[j:j+blk, j:j+blk] * X = U[0:j, j:j+blk]\n        X = -U[j:j+blk, j:j+blk]^(-1) * U[0:j, j:j+blk]\n  \nStep 2: Invert diagonal block\n  TRTI2: U[j:j+blk, j:j+blk] -> U[j:j+blk, j:j+blk]^(-1)\n\nTRTI2 (unblocked base case):\nFor j = n-1 down to 0:\n  1. Compute U^(-1)[0:j, j] = -U^(-1)[0:j, 0:j] * U[0:j, j]\n     TRMV: y = U[0:j, 0:j] * U[0:j, j]\n     SCAL: U[0:j, j] = -y / U[j,j]\n  2. Invert diagonal: U[j,j] = 1/U[j,j]\n\nWhy blocked?\n- BLAS-3 operations (TRMM, TRSM) more efficient than BLAS-2 (TRMV)\n- Better cache utilization\n- Higher GPU occupancy\n- Block size tuned per architecture (typically 64-128)\n\nComplexity: O(n^3/3) flops\n\nExample (n=4, blk=2, upper):\nInput:\nU = [u00 u01 u02 u03]\n    [ 0  u11 u12 u13]\n    [ 0   0  u22 u23]\n    [ 0   0   0  u33]\n\nIteration 1 (j=0, blk=2):\n  No update (j=0)\n  TRTI2: Invert U[0:2, 0:2]\n  Result: U[0:2, 0:2] = U[0:2, 0:2]^(-1)\n\nIteration 2 (j=2, blk=2):\n  TRMM: Multiply U[0:2, 2:4] by U[0:2, 0:2]\n  TRSM: Solve for updated U[0:2, 2:4]\n  TRTI2: Invert U[2:4, 2:4]\n  Result: Full U^(-1)\n\nFor lower triangle: Process bottom-up instead of top-down",
+    "rationale": "TRTRI uses a blocked algorithm that processes the triangular matrix in blocks, using BLAS-3 operations (TRMM, TRSM) for efficiency. Each iteration updates a block column using previously inverted blocks, then inverts the diagonal block. Complexity is O(n^3/3) with better performance than unblocked due to cache optimization.",
+    "tags": ["algorithm", "trtri", "potri", "triangular-inverse", "blocked"]
+})
+time.sleep(0.001)
+
+# Entry 11: invdiag kernel
+entries.append({
+    "id": str(int(time.time() * 1000)),
+    "level": "L2",
+    "interface": "potri",
+    "instruction": "What does the invdiag kernel in TRTRI do? Why store both diagonal reciprocals and negated reciprocals?",
+    "context_text": "TRTRI uses invdiag kernel to compute diagonal reciprocals as a preprocessing step.",
+    "code_blocks": [
+        {
+            "path": "library/src/lapack/roclapack_trtri.hpp",
+            "language": "cpp",
+            "content": "ROCSOLVER_KERNEL void invdiag(const rocblas_diagonal diag,\n                              const rocblas_int n,\n                              U A,\n                              const rocblas_int shiftA,\n                              const rocblas_int lda,\n                              const rocblas_stride strideA,\n                              T* alphas)\n{\n    int b = hipBlockIdx_y;\n    int i = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;\n\n    if(i < n)\n    {\n        T* a = load_ptr_batch<T>(A, b, shiftA, strideA);\n        T* d = alphas + b * n;\n\n        if(a[i + i * lda] != 0 && diag == rocblas_diagonal_non_unit)\n        {\n            a[i + i * lda] = 1.0 / a[i + i * lda];\n            d[i] = -a[i + i * lda];\n        }\n        else\n            d[i] = -1.0;\n    }\n}"
+        }
+    ],
+    "answer": "invdiag kernel in TRTRI:\n\nWhat it does:\n1. Compute reciprocals of diagonal elements\n2. Store reciprocals in A[i,i] (in-place)\n3. Store negated reciprocals in alphas[i]\n\nFor non-unit diagonal (diag = rocblas_diagonal_non_unit):\n- If A[i,i] != 0:\n  - A[i,i] = 1 / A[i,i] (reciprocal)\n  - alphas[i] = -1 / A[i,i] (negated reciprocal)\n- If A[i,i] == 0:\n  - Skip (will be caught by singularity check)\n\nFor unit diagonal (diag = rocblas_diagonal_unit):\n- A[i,i] stays 1 (not modified)\n- alphas[i] = -1\n\nWhy two versions?\n\n1. A[i,i] = 1/A[i,i]:\n- Used in subsequent TRMV operations\n- Final diagonal of U^(-1)\n- Positive value\n\n2. alphas[i] = -1/A[i,i]:\n- Used as scaling factor in SCAL operations\n- Negative for the update formula:\n  U^(-1)[0:i, i] = -(1/U[i,i]) * U[0:i, 0:i] * U[0:i, i]\n- Precomputed to avoid repeated negation\n\nUsage in TRTI2:\nfor j = n-1 down to 0:\n  // Compute column j of U^(-1)\n  trmv(U[0:j,0:j], U[0:j,j], result -> work)\n  scal(alphas[j], work)  // Multiply by -1/U[j,j]\n  // work now contains U^(-1)[0:j, j]\n\nWhy precompute?\n- Parallel across all diagonals (GPU friendly)\n- Avoid repeated division (expensive)\n- Store both signs needed in algorithm\n- Alphas reused in each column update\n\nMemory layout:\nalphas[batch * n + i] for batch b, diagonal i\n- Sequential access per batch\n- Coalesced GPU memory access\n\nExample (n=3):\nInput: U = [2  x  x]\n           [0  3  x]\n           [0  0  4]\n\nAfter invdiag:\nA = [0.5  x   x  ]  (1/2, 1/3, 1/4)\n    [0    0.33 x  ]\n    [0    0    0.25]\n\nalphas = [-0.5, -0.33, -0.25]",
+    "rationale": "invdiag kernel computes diagonal reciprocals (stored in A[i,i]) for use in triangular operations and negated reciprocals (stored in alphas[i]) for scaling in column updates. Precomputing both avoids repeated expensive divisions and provides the correct signs needed in the TRTI2 algorithm.",
+    "tags": ["trtri", "invdiag", "kernel", "diagonal", "reciprocal"]
+})
+time.sleep(0.001)
+
+# Entry 12: Implement simplified POTRI (coding)
+entries.append({
+    "id": str(int(time.time() * 1000)),
+    "level": "L3",
+    "interface": "potri",
+    "instruction": "Write a simplified POTRI implementation that calls TRTRI and TRMM. Include workspace calculation but omit the save/restore mechanism.",
+    "context_text": "Implement a basic POTRI that combines TRTRI and TRMM for the non-batched case.",
+    "code_blocks": [],
+    "answer": "Simplified POTRI implementation:\n\n```cpp\n// File: rocsolver_potri_simple.hpp\n#pragma once\n\n#include \"roclapack_trtri.hpp\"\n#include \"rocblas.hpp\"\n\ntemplate <typename T>\nrocblas_status rocsolver_potri_simple(\n    rocblas_handle handle,\n    const rocblas_fill uplo,\n    const rocblas_int n,\n    T* A,\n    const rocblas_int lda,\n    rocblas_int* info)\n{\n    // 1. Argument validation\n    if(!handle)\n        return rocblas_status_invalid_handle;\n    \n    if(uplo != rocblas_fill_upper && uplo != rocblas_fill_lower)\n        return rocblas_status_invalid_value;\n    \n    if(n < 0 || lda < n)\n        return rocblas_status_invalid_size;\n    \n    if((n && !A) || !info)\n        return rocblas_status_invalid_pointer;\n    \n    // Quick return\n    if(n == 0) {\n        *info = 0;\n        return rocblas_status_success;\n    }\n    \n    // 2. Workspace calculation\n    size_t size_work1, size_work2, size_work3, size_work4;\n    size_t size_tmpcopy, size_workArr;\n    bool optim_mem;\n    \n    rocsolver_trtri_getMemorySize<false, false, T>(\n        rocblas_diagonal_non_unit, n, 1,\n        &size_work1, &size_work2, &size_work3, &size_work4,\n        &size_tmpcopy, &size_workArr, &optim_mem);\n    \n    // Need n*n buffer for TRMM\n    size_tmpcopy = std::max(size_tmpcopy, sizeof(T) * n * n);\n    \n    // 3. Allocate workspace\n    void *work1, *work2, *work3, *work4, *tmpcopy, *workArr;\n    rocblas_device_malloc mem(handle, size_work1, size_work2,\n        size_work3, size_work4, size_tmpcopy, size_workArr);\n    \n    if(!mem)\n        return rocblas_status_memory_error;\n    \n    work1 = mem[0];\n    work2 = mem[1];\n    work3 = mem[2];\n    work4 = mem[3];\n    tmpcopy = mem[4];\n    workArr = mem[5];\n    \n    hipStream_t stream;\n    rocblas_get_stream(handle, &stream);\n    \n    // 4. Triangular inverse (L^(-1) or U^(-1))\n    rocblas_status status = rocsolver_trtri_template<false, false, T>(\n        handle, uplo, rocblas_diagonal_non_unit, n,\n        A, 0, lda, 0, info, 1,\n        work1, work2, work3, work4,\n        (T*)tmpcopy, (T**)workArr, optim_mem);\n    \n    if(status != rocblas_status_success)\n        return status;\n    \n    // Check for singularity\n    rocblas_int h_info;\n    hipMemcpy(&h_info, info, sizeof(rocblas_int), hipMemcpyDeviceToHost);\n    if(h_info > 0)\n        return rocblas_status_success;  // Singular, A unchanged\n    \n    // 5. Copy inv(L) or inv(U) to tmpcopy\n    rocblas_int blocks = (n - 1) / 32 + 1;\n    ROCSOLVER_LAUNCH_KERNEL(\n        (copy_mat<T>),\n        dim3(blocks, blocks, 1), dim3(32, 32), 0, stream,\n        copymat_to_buffer, n, n, A, 0, lda, 0,\n        (T*)tmpcopy, no_mask{}, uplo);\n    \n    // 6. Compute inv(L)^T * inv(L) or inv(U) * inv(U)^T\n    rocblas_pointer_mode old_mode;\n    rocblas_get_pointer_mode(handle, &old_mode);\n    rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host);\n    \n    T one = 1.0;\n    rocblas_side side = (uplo == rocblas_fill_upper ?\n                         rocblas_side_right : rocblas_side_left);\n    \n    rocblasCall_trmm(\n        handle, side, uplo,\n        rocblas_operation_conjugate_transpose,\n        rocblas_diagonal_non_unit,\n        n, n, &one, 0,\n        A, 0, lda, 0,              // inv(L) or inv(U)\n        (T*)tmpcopy, 0, n, n*n,    // Source and result\n        1, (T**)workArr);\n    \n    // 7. Copy result back to A\n    ROCSOLVER_LAUNCH_KERNEL(\n        (copy_mat<T>),\n        dim3(blocks, blocks, 1), dim3(32, 32), 0, stream,\n        copymat_from_buffer, n, n, A, 0, lda, 0,\n        (T*)tmpcopy, no_mask{}, uplo,\n        rocblas_diagonal_non_unit);\n    \n    rocblas_set_pointer_mode(handle, old_mode);\n    return rocblas_status_success;\n}\n\n// C API wrapper\nextern \"C\" rocblas_status rocsolver_spotri_simple(\n    rocblas_handle handle,\n    const rocblas_fill uplo,\n    const rocblas_int n,\n    float* A,\n    const rocblas_int lda,\n    rocblas_int* info)\n{\n    return rocsolver_potri_simple<float>(\n        handle, uplo, n, A, lda, info);\n}\n```\n\nKey simplifications:\n- No save/restore around TRMM (assumes successful inversion)\n- Non-batched only (batch_count=1)\n- Checks info after TRTRI but doesn't preserve A on error\n- Simpler but less robust than full POTRI\n\nUsage:\n```cpp\nfloat A[9] = {4,2,1, 0,3,1, 0,0,2};  // Lower Cholesky factor\nrocblas_int info;\n\nrocsolver_spotri_simple(handle, rocblas_fill_lower, 3, A, 3, &info);\n\nif(info == 0)\n    printf(\"A now contains inverse\\n\");\nelse\n    printf(\"Singular at position %d\\n\", info);\n```",
+    "rationale": "Simplified POTRI calls TRTRI to invert the Cholesky factor, then TRMM to compute the symmetric product inv(L)^T*inv(L) or inv(U)*inv(U)^T. It omits the save/restore mechanism of full POTRI, making it simpler but unable to preserve the original factor on singularity.",
+    "tags": ["coding", "potri", "trtri", "trmm", "implementation"]
+})
+time.sleep(0.001)
+
+# Output
+print(f"Generated {len(entries)} entries")
+with open('/root/rocSOLVER/kernelgen/dataset/roclapack_potri.jsonl', 'w') as f:
+    for entry in entries:
+        f.write(json.dumps(entry) + '\n')
+
+coding_count = sum(1 for e in entries if 'coding' in e['tags'] or 'implementation' in e['tags'])
+l1 = sum(1 for e in entries if e['level'] == 'L1')
+l2 = sum(1 for e in entries if e['level'] == 'L2')
+l3 = sum(1 for e in entries if e['level'] == 'L3')
+
+print(f"Output: /root/rocSOLVER/kernelgen/dataset/roclapack_potri.jsonl")
+print(f"Coding tasks: {coding_count}/{len(entries)} ({coding_count/len(entries)*100:.1f}%)")
+print(f"L1: {l1}, L2: {l2}, L3: {l3}")

@@ -1,0 +1,429 @@
+================================================================================
+ROCSOLVER DATASET REPORT
+================================================================================
+
+Total files: 46
+Total entries: 523
+Total characters: 1,806,509
+Total tokens (estimated): 451,627
+Average chars per entry: 3,454
+Average tokens per entry: 864
+
+--------------------------------------------------------------------------------
+LEVEL DISTRIBUTION
+--------------------------------------------------------------------------------
+L1:  191 ( 36.5%)
+L2:  199 ( 38.0%)
+L3:  133 ( 25.4%)
+
+--------------------------------------------------------------------------------
+TAG DISTRIBUTION (Top 30)
+--------------------------------------------------------------------------------
+coding                          222 ( 42.4%)
+analysis                        149 ( 28.5%)
+algorithm                       130 ( 24.9%)
+workspace                       125 ( 23.9%)
+performance                      93 ( 17.8%)
+api                              87 ( 16.6%)
+subsystem                        82 ( 15.7%)
+error-handling                   73 ( 14.0%)
+batched-execution                64 ( 12.2%)
+single-function                  61 ( 11.7%)
+interface-level                  47 (  9.0%)
+optimization                     29 (  5.5%)
+trtri                            19 (  3.6%)
+getrf                            17 (  3.3%)
+getrs                            17 (  3.3%)
+memory-management                15 (  2.9%)
+api-design                       14 (  2.7%)
+validation                       14 (  2.7%)
+kernel-fusion                    13 (  2.5%)
+workspace-management             13 (  2.5%)
+blocked-algorithm                13 (  2.5%)
+performance-analysis             13 (  2.5%)
+complex-arithmetic               13 (  2.5%)
+gesv                             13 (  2.5%)
+getri                            13 (  2.5%)
+potri                            13 (  2.5%)
+data-flow                        12 (  2.3%)
+shared-memory                    12 (  2.3%)
+householder                      12 (  2.3%)
+comparison                       12 (  2.3%)
+
+Coding tasks: 222/523 (42.4%)
+
+--------------------------------------------------------------------------------
+INTERFACE DISTRIBUTION
+--------------------------------------------------------------------------------
+gebrd                            18 entries
+gerqf                            18 entries
+geqlf                            14 entries
+potf2                            14 entries
+geql2                            12 entries
+geqrf                            12 entries
+gesdd                            12 entries
+gesv                             12 entries
+gesvd                            12 entries
+gesvdj                           12 entries
+gesvdx                           12 entries
+getrf                            12 entries
+getri                            12 entries
+getrs                            12 entries
+posv                             12 entries
+potrf                            12 entries
+potri                            12 entries
+syev_heev                        12 entries
+syevd_heevd                      12 entries
+syevdj_heevdj                    12 entries
+syevdx_heevdx                    12 entries
+syevj_heevj                      12 entries
+syevx_heevx                      12 entries
+sygs2_hegs2                      12 entries
+sygst_hegst                      12 entries
+sygv_hegv                        12 entries
+sygvd_hegvd                      12 entries
+sygvdj_hegvdj                    12 entries
+sygvj                            12 entries
+sygvx                            12 entries
+sytd2_hetd2                      12 entries
+sytf2                            12 entries
+sytrd_hetrd                      12 entries
+sytrf                            12 entries
+trtri                            12 entries
+potrs                            11 entries
+gebd2                            10 entries
+sygvdx_hegvdx                    10 entries
+geblttrf_npvt                     7 entries
+roclapack_geblttrs_npvt           7 entries
+gelq2                             7 entries
+roclapack_gelqf                   7 entries
+roclapack_gels                    7 entries
+geqr2                             7 entries
+gerq2                             7 entries
+roclapack_getf2                   7 entries
+
+--------------------------------------------------------------------------------
+PER-FILE STATISTICS
+--------------------------------------------------------------------------------
+
+roclapack_gebd2.jsonl
+  Entries: 10
+  Characters: 45,187
+  Tokens: 11,297
+  Level: L1=5 L2=3 L3=2 
+  Top tags: coding(5), analysis(5), kernel-fusion(2), householder-reflector(1), numerical-stability(1)
+
+roclapack_geblttrf_npvt.jsonl
+  Entries: 7
+  Characters: 39,089
+  Tokens: 9,772
+  Level: L1=3 L2=2 L3=2 
+  Top tags: analysis(4), coding(3), memory-layout(2), api-design(2), error-propagation(1)
+
+roclapack_geblttrs_npvt.jsonl
+  Entries: 7
+  Characters: 28,427
+  Tokens: 7,107
+  Level: L1=3 L2=2 L3=2 
+  Top tags: analysis(4), coding(3), optimization(3), block-tridiagonal(2), kernel-fusion(2)
+
+roclapack_gebrd.jsonl
+  Entries: 18
+  Characters: 44,368
+  Tokens: 11,092
+  Level: L1=8 L2=5 L3=5 
+  Top tags: coding(9), householder(4), optimization(3), larfg(2), blocked-algorithm(2)
+
+roclapack_gelq2.jsonl
+  Entries: 7
+  Characters: 45,981
+  Tokens: 11,495
+  Level: L1=3 L2=2 L3=2 
+  Top tags: coding(4), lq-factorization(4), complex-arithmetic(3), analysis(3), row-operations(2)
+
+roclapack_gelqf.jsonl
+  Entries: 7
+  Characters: 49,113
+  Tokens: 12,278
+  Level: L1=3 L2=2 L3=2 
+  Top tags: coding(4), householder-reflector(3), analysis(3), blocked-algorithm(3), level3-blas(2)
+
+roclapack_gels.jsonl
+  Entries: 7
+  Characters: 58,379
+  Tokens: 14,595
+  Level: L1=3 L2=2 L3=2 
+  Top tags: coding(4), analysis(3), conditional-execution(2), batched-operations(2), qr-factorization(2)
+
+roclapack_geql2.jsonl
+  Entries: 12
+  Characters: 42,178
+  Tokens: 10,544
+  Level: L1=4 L2=4 L3=4 
+  Top tags: coding(6), analysis(6), ql-factorization(4), larfg(2), larf(2)
+
+roclapack_geqlf.jsonl
+  Entries: 14
+  Characters: 26,604
+  Tokens: 6,651
+  Level: L1=7 L2=4 L3=3 
+  Top tags: coding(7), indexing(3), blocked-algorithm(2), block-reflector(2), ql-vs-qr(2)
+
+roclapack_geqr2.jsonl
+  Entries: 7
+  Characters: 44,106
+  Tokens: 11,026
+  Level: L1=3 L2=2 L3=2 
+  Top tags: coding(4), qr-factorization(3), analysis(3), kernel-fusion(2), shared-memory(2)
+
+roclapack_geqrf.jsonl
+  Entries: 12
+  Characters: 45,431
+  Tokens: 11,358
+  Level: L1=6 L2=3 L3=3 
+  Top tags: coding(6), geqr2(5), larft(4), kernel-implementation(3), larfb(3)
+
+roclapack_gerq2.jsonl
+  Entries: 7
+  Characters: 41,342
+  Tokens: 10,336
+  Level: L1=3 L2=2 L3=2 
+  Top tags: rq-factorization(5), coding(4), bottom-to-top-processing(3), analysis(3), complex-arithmetic(2)
+
+roclapack_gerqf.jsonl
+  Entries: 18
+  Characters: 30,785
+  Tokens: 7,696
+  Level: L1=8 L2=5 L3=5 
+  Top tags: coding(9), indexing(4), backward-direction(4), householder(3), batched-execution(2)
+
+roclapack_gesdd.jsonl
+  Entries: 12
+  Characters: 38,375
+  Tokens: 9,594
+  Level: L1=4 L2=4 L3=4 
+  Top tags: coding(8), svd(5), algorithm(4), api(3), kernel(2)
+
+roclapack_gesv.jsonl
+  Entries: 12
+  Characters: 24,106
+  Tokens: 6,026
+  Level: L1=5 L2=4 L3=3 
+  Top tags: gesv(12), getrs(4), getrf(3), lu-factorization(2), singular-matrix(2)
+
+roclapack_gesvd.jsonl
+  Entries: 12
+  Characters: 68,631
+  Tokens: 17,158
+  Level: L1=3 L2=6 L3=3 
+  Top tags: coding(7), api(5), algorithm(2), bidiagonalization(2), qr-iteration(2)
+
+roclapack_gesvdj.jsonl
+  Entries: 12
+  Characters: 47,755
+  Tokens: 11,939
+  Level: L1=3 L2=6 L3=3 
+  Top tags: gesvdj(12), jacobi(5), algorithm(3), syevj(3), eigenvalue(3)
+
+roclapack_gesvdx.jsonl
+  Entries: 12
+  Characters: 53,952
+  Tokens: 13,488
+  Level: L1=2 L2=7 L3=3 
+  Top tags: gesvdx(11), algorithm(4), bdsvdx(3), parameters(2), svd(1)
+
+roclapack_getf2.jsonl
+  Entries: 7
+  Characters: 36,610
+  Tokens: 9,152
+  Level: L1=3 L2=2 L3=2 
+  Top tags: analysis(4), coding(3), shared-memory(2), parallel-algorithm(2), LU-factorization(2)
+
+roclapack_getrf.jsonl
+  Entries: 12
+  Characters: 30,150
+  Tokens: 7,538
+  Level: L1=5 L2=4 L3=3 
+  Top tags: getrf(12), analysis(10), single-function(5), api(5), subsystem(4)
+
+roclapack_getri.jsonl
+  Entries: 12
+  Characters: 27,809
+  Tokens: 6,952
+  Level: L1=4 L2=4 L3=4 
+  Top tags: getri(12), workspace(9), analysis(8), algorithm(7), batched-execution(6)
+
+roclapack_getrs.jsonl
+  Entries: 12
+  Characters: 30,821
+  Tokens: 7,705
+  Level: L1=4 L2=5 L3=3 
+  Top tags: getrs(12), coding(8), api(7), workspace(6), algorithm(5)
+
+roclapack_posv.jsonl
+  Entries: 12
+  Characters: 54,795
+  Tokens: 13,699
+  Level: L1=4 L2=5 L3=3 
+  Top tags: coding(5), cholesky(3), spd(3), error-handling(3), api(3)
+
+roclapack_potf2.jsonl
+  Entries: 14
+  Characters: 24,302
+  Tokens: 6,076
+  Level: L1=7 L2=4 L3=3 
+  Top tags: coding(7), rank-1-update(3), cholesky(2), error-handling(2), packed-storage(2)
+
+roclapack_potrf.jsonl
+  Entries: 12
+  Characters: 45,974
+  Tokens: 11,494
+  Level: L1=5 L2=4 L3=3 
+  Top tags: algorithm(4), coding(4), api(4), cholesky(2), kernel(2)
+
+roclapack_potri.jsonl
+  Entries: 12
+  Characters: 31,933
+  Tokens: 7,983
+  Level: L1=3 L2=5 L3=4 
+  Top tags: potri(11), trtri(7), trmm(5), algorithm(3), matrix-inverse(2)
+
+roclapack_potrs.jsonl
+  Entries: 11
+  Characters: 36,108
+  Tokens: 9,027
+  Level: L1=5 L2=4 L3=2 
+  Top tags: api(6), trsm(4), coding(3), error-handling(2), performance(2)
+
+roclapack_syev_heev.jsonl
+  Entries: 12
+  Characters: 55,179
+  Tokens: 13,795
+  Level: L1=3 L2=6 L3=3 
+  Top tags: syev(11), heev(10), algorithm(5), steqr(3), sytrd(2)
+
+roclapack_syevd_heevd.jsonl
+  Entries: 12
+  Characters: 29,734
+  Tokens: 7,434
+  Level: L1=4 L2=5 L3=3 
+  Top tags: syevd_heevd(12), analysis(9), performance(5), subsystem(5), single-function(4)
+
+roclapack_syevdj_heevdj.jsonl
+  Entries: 12
+  Characters: 36,125
+  Tokens: 9,031
+  Level: L1=3 L2=6 L3=3 
+  Top tags: syevdj_heevdj(12), algorithm(9), workspace(8), analysis(7), subsystem(6)
+
+roclapack_syevdx_heevdx.jsonl
+  Entries: 12
+  Characters: 38,443
+  Tokens: 9,611
+  Level: L1=3 L2=6 L3=3 
+  Top tags: syevdx_heevdx(12), algorithm(8), performance(6), subsystem(6), analysis(5)
+
+roclapack_syevj_heevj.jsonl
+  Entries: 12
+  Characters: 39,657
+  Tokens: 9,914
+  Level: L1=4 L2=5 L3=3 
+  Top tags: syevj_heevj(12), algorithm(9), analysis(9), coding(9), api(6)
+
+roclapack_syevx_heevx.jsonl
+  Entries: 12
+  Characters: 46,810
+  Tokens: 11,702
+  Level: L1=3 L2=6 L3=3 
+  Top tags: syevx_heevx(12), api(8), workspace(8), coding(7), algorithm(6)
+
+roclapack_sygs2_hegs2.jsonl
+  Entries: 12
+  Characters: 29,743
+  Tokens: 7,436
+  Level: L1=4 L2=5 L3=3 
+  Top tags: sygs2_hegs2(12), analysis(9), workspace(7), batched-execution(7), subsystem(5)
+
+roclapack_sygst_hegst.jsonl
+  Entries: 12
+  Characters: 32,501
+  Tokens: 8,125
+  Level: L1=3 L2=6 L3=3 
+  Top tags: sygst_hegst(12), analysis(7), performance(7), subsystem(6), workspace(6)
+
+roclapack_sygv_hegv.jsonl
+  Entries: 12
+  Characters: 32,132
+  Tokens: 8,033
+  Level: L1=3 L2=6 L3=3 
+  Top tags: sygv_hegv(12), coding(9), analysis(8), subsystem(6), performance(5)
+
+roclapack_sygvd_hegvd.jsonl
+  Entries: 12
+  Characters: 30,560
+  Tokens: 7,640
+  Level: L1=4 L2=5 L3=3 
+  Top tags: sygvd_hegvd(12), workspace(9), algorithm(8), analysis(6), performance(6)
+
+roclapack_sygvdj_hegvdj.jsonl
+  Entries: 12
+  Characters: 45,840
+  Tokens: 11,460
+  Level: L1=4 L2=6 L3=2 
+  Top tags: sygvdj_hegvdj(12), coding(9), workspace(8), algorithm(6), analysis(6)
+
+roclapack_sygvdx_hegvdx.jsonl
+  Entries: 10
+  Characters: 41,831
+  Tokens: 10,458
+  Level: L1=3 L2=5 L3=2 
+  Top tags: sygvdx_hegvdx(10), performance(7), workspace(7), coding(7), batched-execution(5)
+
+roclapack_sygvj_hegvj.jsonl
+  Entries: 12
+  Characters: 45,299
+  Tokens: 11,325
+  Level: L1=6 L2=4 L3=2 
+  Top tags: coding(6), batched(4), error-handling(3), memory-management(2), optimization(2)
+
+roclapack_sygvx_hegvx.jsonl
+  Entries: 12
+  Characters: 50,745
+  Tokens: 12,686
+  Level: L1=6 L2=4 L3=2 
+  Top tags: selective-computation(7), coding(6), api-design(5), error-handling(4), validation(3)
+
+roclapack_sytd2_hetd2.jsonl
+  Entries: 12
+  Characters: 27,751
+  Tokens: 6,938
+  Level: L1=5 L2=4 L3=3 
+  Top tags: sytd2_hetd2(12), coding(8), analysis(6), workspace(5), single-function(5)
+
+roclapack_sytf2.jsonl
+  Entries: 12
+  Characters: 29,825
+  Tokens: 7,456
+  Level: L1=5 L2=4 L3=3 
+  Top tags: pivoting(4), bunch-kaufman(2), symmetric-factorization(2), sytf2(2), iamax(2)
+
+roclapack_sytrd_hetrd.jsonl
+  Entries: 12
+  Characters: 28,139
+  Tokens: 7,035
+  Level: L1=5 L2=4 L3=3 
+  Top tags: sytrd_hetrd(12), workspace(10), algorithm(6), analysis(6), single-function(5)
+
+roclapack_sytrf.jsonl
+  Entries: 12
+  Characters: 34,446
+  Tokens: 8,612
+  Level: L1=4 L2=5 L3=3 
+  Top tags: lasyf(4), panel-factorization(4), sytrf(3), blocking(3), workspace(3)
+
+roclapack_trtri.jsonl
+  Entries: 12
+  Characters: 39,438
+  Tokens: 9,860
+  Level: L1=3 L2=5 L3=4 
+  Top tags: trtri(12), algorithm(3), diag(3), trti2(3), trsm(2)
